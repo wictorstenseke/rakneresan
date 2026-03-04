@@ -2,6 +2,8 @@ import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { initializeFirestore, persistentLocalCache } from 'firebase/firestore'
 
+// Firebase is initialized here but auth and db are not used anywhere yet.
+// TODO: Replace placeholder values with your Firebase project config
 const firebaseConfig = {
   apiKey: 'REPLACE_ME',
   authDomain: 'REPLACE_ME',
