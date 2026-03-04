@@ -39,6 +39,14 @@ function pickRandom(deck: GameCard[]): GameCard {
   return deck[Math.floor(Math.random() * deck.length)]
 }
 
+function nextCard(state: GameState): GameState {
+  if (state.deck.length === 0) {
+    return state
+  }
+  const current = pickRandom(state.deck)
+  return { ...state, current, peeked: false, busy: false }
+}
+
 export function useGame(username: string) {
   const [gameState, setGameState] = useState<GameState>(initialState)
   const [roundResult, setRoundResult] = useState<RoundResult | null>(null)
@@ -51,14 +59,6 @@ export function useGame(username: string) {
       gsRef.current = next
       return next
     })
-  }, [])
-
-  const nextCard = useCallback((state: GameState): GameState => {
-    if (state.deck.length === 0) {
-      return state // endRound will be triggered by the caller
-    }
-    const current = pickRandom(state.deck)
-    return { ...state, current, peeked: false, busy: false }
   }, [])
 
   const startGame = useCallback(async (table: number) => {
@@ -130,7 +130,7 @@ export function useGame(username: string) {
     })
   }, [username])
 
-  const moveCard = useCallback((correct: boolean) => {
+  const moveCard = useCallback((correct: boolean): void => {
     const gs = gsRef.current
     if (!gs.current) return
 
@@ -164,7 +164,7 @@ export function useGame(username: string) {
     const withNext = nextCard(updated)
     gsRef.current = withNext
     setGameState(withNext)
-  }, [nextCard, endRound])
+  }, [endRound])
 
   const submitAnswer = useCallback((value: number): 'correct' | 'wrong' | 'invalid' => {
     const gs = gsRef.current

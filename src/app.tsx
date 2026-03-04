@@ -12,6 +12,7 @@ export function App() {
   const { currentUser, login, logout } = useAuth()
   const [screen, setScreen] = useState<Screen>('login')
   const [selectedTable, setSelectedTable] = useState(1)
+  const [gameKey, setGameKey] = useState(0)
   const [completeResult, setCompleteResult] = useState<RoundResult | null>(null)
 
   const handleLogin = useCallback((_username: string) => {
@@ -25,6 +26,7 @@ export function App() {
 
   const handleSelectTable = useCallback((table: number) => {
     setSelectedTable(table)
+    setGameKey(k => k + 1)
     setScreen('game')
   }, [])
 
@@ -38,6 +40,7 @@ export function App() {
   }, [])
 
   const handleContinue = useCallback(() => {
+    setGameKey(k => k + 1)
     setScreen('game')
   }, [])
 
@@ -59,7 +62,7 @@ export function App() {
     case 'game':
       return (
         <GamePage
-          key={`${selectedTable}-${Date.now()}`}
+          key={gameKey}
           table={selectedTable}
           user={currentUser!}
           onBack={handleGameBack}

@@ -43,8 +43,13 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
   }, [roundResult, onComplete])
 
   // Focus input when current card changes
+  // Track card changes via a ref to detect when current card actually changes
+  const prevCardRef = useRef<{ n: number; deckLen: number } | null>(null)
   useEffect(() => {
-    if (gameState.current) {
+    const curr = gameState.current
+    const prev = prevCardRef.current
+    if (curr && (!prev || prev.n !== curr.n || prev.deckLen !== gameState.deck.length)) {
+      prevCardRef.current = { n: curr.n, deckLen: gameState.deck.length }
       setInputValue('')
       setInputClass('answer-input')
       setFlipped(false)
@@ -52,7 +57,7 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
       setCardKey(k => k + 1)
       setTimeout(() => inputRef.current?.focus(), 50)
     }
-  }, [gameState.current?.n, gameState.deck.length])
+  }, [gameState])
 
   const floatFeedback = useCallback((text: string, good: boolean) => {
     const el = document.createElement('div')
