@@ -1,11 +1,8 @@
 import { useState, useCallback, useRef } from 'preact/hooks'
 import { storage } from '../lib/storageContext'
 import type { TableData } from '../lib/storage'
-
-interface GameCard {
-  n: number
-  fromRetry: boolean
-}
+import { buildDeck, isCorrectAnswer, computeEndRound } from '../lib/game-logic'
+import type { GameCard } from '../lib/game-logic'
 
 interface GameState {
   table: number
@@ -68,18 +65,11 @@ export function useGame(username: string) {
     const tables = userData?.tables ?? {}
     const td: TableData = tables[table] ?? { wins: 0, clear: [], retry: [] }
 
-    const all = Array.from({ length: 10 }, (_, i) => i + 1)
-
-    let deck: GameCard[] = [
-      ...td.retry.map(n => ({ n, fromRetry: true })),
-      ...all
-        .filter(n => !td.clear.includes(n) && !td.retry.includes(n))
-        .map(n => ({ n, fromRetry: false })),
-    ]
+    let deck: GameCard[] = buildDeck(td)
 
     // If all done, reset
     if (deck.length === 0) {
-      deck = all.map(n => ({ n, fromRetry: false }))
+      deck = Array.from({ length: 10 }, (_, i) => ({ n: i + 1, fromRetry: false }))
       const resetTd: TableData = { wins: td.wins, clear: [], retry: [] }
       await storage.saveTableData(username, table, resetTd)
     }
@@ -105,13 +95,9 @@ export function useGame(username: string) {
     const tables = userData?.tables ?? {}
     const td: TableData = tables[table] ?? { wins: 0, clear: [], retry: [] }
 
-    const newClear = [...new Set([...(td.clear || []), ...clearPile])]
-    const newRetry = retryPile.filter(n => !newClear.includes(n))
-    const allClear = newClear.length === 10
-    let wins = td.wins || 0
+    const { newClear, newRetry, allClear, wins } = computeEndRound(td, clearPile, retryPile)
 
     if (allClear) {
-      wins += 1
       await storage.saveTableData(username, table, { wins, clear: [], retry: [] })
     } else {
       await storage.saveTableData(username, table, { wins, clear: newClear, retry: newRetry })
@@ -167,8 +153,7 @@ export function useGame(username: string) {
     if (gs.busy || !gs.current) return 'invalid'
     if (isNaN(value)) return 'invalid'
 
-    const correct = gs.table * gs.current.n
-    if (value === correct) {
+    if (isCorrectAnswer(gs.table, gs.current.n, value)) {
       updateState(prev => ({ ...prev, busy: true }))
       setTimeout(() => {
         moveCard(true)
