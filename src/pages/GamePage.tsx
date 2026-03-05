@@ -136,6 +136,32 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
     peekCard()
   }, [flipped, peekCard])
 
+  // Keyboard support: numbers, Delete/Backspace, Enter
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        if (showAnswerAfterWrong) {
+          handleShowAnswerDismiss()
+        } else if (!flipped) {
+          handleSubmit()
+        }
+        return
+      }
+      const disabled = flipped || showAnswerAfterWrong
+      if (disabled) return
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault()
+        setInputValue(prev => (prev.length < 3 ? prev + e.key : prev))
+      } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault()
+        setInputValue(prev => prev.slice(0, -1))
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [flipped, showAnswerAfterWrong, handleSubmit, handleShowAnswerDismiss])
+
   const { deck, clearPile, retryPile, current } = gameState
   const done = clearPile.length + retryPile.length
   const total = deck.length + done

@@ -3,6 +3,7 @@ import { signOut, onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { storage } from '../lib/storageContext'
 import { emailToUsername } from '../lib/constants'
+import { saveUser } from '../lib/savedUsers'
 
 interface AuthState {
   currentUser: string | null
@@ -45,6 +46,7 @@ export function useAuth() {
       }
     }
 
+    saveUser(trimmed, pin)
     setState(s => ({ ...s, currentUser: trimmed }))
     return { success: true }
   }, [])

@@ -117,17 +117,19 @@ img.login-emoji {
 .input-group input {
   width: 100%;
   padding: 14px 18px;
-  border: 3px solid #eee;
+  border: 3px solid #EFE4D2;
   border-radius: 14px;
   font-family: 'Nunito', sans-serif;
   font-size: 1rem;
   font-weight: 600;
   outline: none;
-  transition: border-color .2s;
+  transition: border-color .2s, box-shadow .2s;
+  background: #FFFDF8;
 }
 
 .input-group input:focus {
   border-color: #4D96FF;
+  box-shadow: 0 0 0 3px #4D96FF22;
 }
 
 .btn-primary {
@@ -137,8 +139,11 @@ img.login-emoji {
   color: white;
   border: none;
   border-radius: 14px;
-  font-family: 'Fredoka One', cursive;
-  font-size: 1.3rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
   cursor: pointer;
   transition: transform .15s, box-shadow .15s;
   box-shadow: 0 6px 20px #FF6B6B55;
@@ -150,12 +155,136 @@ img.login-emoji {
   box-shadow: 0 10px 28px #FF6B6B66;
 }
 
+.btn-primary:active {
+  transform: scale(.97) translateY(0);
+  box-shadow: 0 3px 10px #FF6B6B55;
+}
+
 .login-error {
-  color: #FF6B6B;
   font-weight: 700;
   font-size: .9rem;
-  margin-top: 10px;
+  margin-top: 12px;
   min-height: 20px;
+  color: transparent;
+}
+
+.login-error:not(:empty) {
+  color: #D94F3D;
+  background: #FFF0EE;
+  border: 2px solid #FFCCC8;
+  border-radius: 12px;
+  padding: 10px 16px;
+  animation: shake .4s ease;
+}
+
+/* LOGIN TABS */
+.login-tabs {
+  display: flex;
+  background: #FFF0EE;
+  border: 2px solid #FFD4C4;
+  border-radius: 14px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+
+.login-tab {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  cursor: pointer;
+  transition: all .25s cubic-bezier(.34, 1.56, .64, 1);
+  background: transparent;
+  color: #BBB;
+}
+
+.login-tab.active {
+  background: linear-gradient(135deg, #FF6B6B, #FF9A3C);
+  color: white;
+  box-shadow: 0 3px 10px #FF6B6B55;
+  transform: scale(1.03);
+}
+
+/* AVATAR CHIPS */
+.avatar-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 16px;
+  transition: transform .2s cubic-bezier(.34, 1.56, .64, 1);
+  min-width: 56px;
+}
+
+.avatar-chip:hover {
+  transform: scale(1.12) translateY(-3px);
+}
+
+.avatar-chip:active {
+  transform: scale(.93);
+}
+
+.avatar-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .15);
+  transition: box-shadow .2s;
+}
+
+.avatar-chip:hover .avatar-circle {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+}
+
+.avatar-name {
+  font-family: 'Nunito', sans-serif;
+  font-size: .95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  color: #555;
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+
+.avatar-remove {
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  min-height: 32px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #CCC;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: color .15s, background .15s;
+  touch-action: manipulation;
+}
+
+.avatar-remove:hover,
+.avatar-remove:active {
+  color: #FF6B6B;
+  background: #FFF0EE;
 }
 
 /* HOME */
@@ -191,9 +320,9 @@ img.login-emoji {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 8px 14px;
+  gap: 4px;
+  min-height: 36px;
+  padding: 6px 10px;
   border: 2px solid #eee;
   border-radius: 12px;
   background: white;
