@@ -9,6 +9,8 @@ npm run dev        # Start dev server
 npm run build      # Type-check + build
 npm run typecheck  # TypeScript check only
 npm run lint       # ESLint
+npm run test       # Run Vitest unit tests
+npm run test:watch # Watch mode for tests
 ```
 
 ## Architecture
@@ -23,6 +25,8 @@ npm run lint       # ESLint
 - **iPad-first**: Touch targets must be at least 44×44px; use `dvh` not `vh`; respect `safe-area-inset-*`
 - **Storage adapter pattern**: All data access goes through `StorageAdapter` — never call Firebase directly from components or hooks
 - **Peek = retry**: Any card peek must move the card to the retry pile — this is a core game rule
+- **Auto-flip**: After 2+ wrong answers on a card, flip and show answer automatically (12s timer in GamePage)
+- **Keypad**: `NumericKeypad` supports left/right-handed mode, persisted via `preferences.ts` — max 3 digits input
 
 ## Firebase
 
@@ -41,3 +45,12 @@ npm run lint       # ESLint
 - Shared constants in `src/lib/constants.ts`
 - Firebase init in `src/lib/firebase.ts`
 - Active storage adapter: `src/lib/storage.firebase.ts` (swap in `src/lib/storageContext.ts`)
+- Game rules & deck logic in `src/lib/game-logic.ts` (buildDeck, isCorrectAnswer, computeEndRound)
+- Keypad hand preference in `src/lib/preferences.ts`
+
+## App Branding
+
+- App name: **Räkneresan** (Swedish: "The Math Journey")
+- Tables 1–10 (multiplication tables), each with a unique color + emoji
+- Auth uses fake email domain: `username@matte.kort`
+- Screen flow: Login → Home → Game → Complete → (back to Home or replay)
