@@ -26,8 +26,8 @@ export function LoginPage({ onLogin, login }: LoginPageProps) {
   return (
     <div class="screen active login-screen">
       <form class="login-box" onSubmit={handleSubmit}>
-        <span class="login-emoji">🧮</span>
-        <h1>Mattekort</h1>
+        <img src="/rocket.svg" alt="" class="login-emoji" width="80" height="80" />
+        <h1>Räkneresan</h1>
         <p>Öva gångertabellen – snabbt &amp; kul! 🎉</p>
 
         <div class="input-group">

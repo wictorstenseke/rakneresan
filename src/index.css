@@ -79,6 +79,13 @@ body::before {
   animation: wiggle 2s ease-in-out infinite;
 }
 
+img.login-emoji {
+  width: 80px;
+  height: 80px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .login-box h1 {
   font-family: 'Fredoka One', cursive;
   font-size: 2.4rem;
