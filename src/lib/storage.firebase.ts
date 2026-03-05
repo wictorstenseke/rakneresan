@@ -11,14 +11,14 @@ function requireUid(): string {
 }
 
 export const firebaseStorageAdapter: StorageAdapter = {
-  async getUser(_username: string): Promise<UserData | null> {
+  async getUser(_: string): Promise<UserData | null> {
     const uid = requireUid()
     const snap = await getDoc(doc(db, 'users', uid))
     if (!snap.exists()) return null
     return { tables: snap.data().tables ?? {} }
   },
 
-  async saveTableData(_username: string, table: number, data: TableData): Promise<void> {
+  async saveTableData(_: string, table: number, data: TableData): Promise<void> {
     const uid = requireUid()
     await updateDoc(doc(db, 'users', uid), { [`tables.${table}`]: data })
   },
