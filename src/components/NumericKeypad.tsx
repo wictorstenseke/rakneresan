@@ -8,6 +8,7 @@ interface NumericKeypadProps {
   disabled?: boolean
   user: string
   onPeek?: () => void
+  onHint?: () => void
   flipped?: boolean
 }
 
@@ -20,7 +21,7 @@ const KEYS = [
 
 const HAND_PREF_KEY = 'handedness'
 
-export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPeek, flipped }: NumericKeypadProps) {
+export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPeek, onHint, flipped }: NumericKeypadProps) {
   const [pressedKey, setPressedKey] = useState<string | null>(null)
   const [rightHanded, setRightHanded] = useState(true)
   const [isSwitching, setIsSwitching] = useState(false)
@@ -92,6 +93,17 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
           >
             <span class="btn-icon">👀</span>
             <span class="btn-text">Kolla svar</span>
+          </button>
+        )}
+        {onHint && (
+          <button
+            type="button"
+            class="btn-hint"
+            onClick={onHint}
+            aria-label="Öppna hjälp"
+          >
+            <span class="btn-icon">💡</span>
+            <span class="btn-text">Hjälp</span>
           </button>
         )}
         <button

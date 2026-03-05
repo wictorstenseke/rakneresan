@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'preact/hooks'
 import { COLORS, COLORS2 } from '../lib/constants'
 import { useGame } from '../hooks/useGame'
 import { NumericKeypad } from '../components/NumericKeypad'
+import { HintModal } from '../components/HintModal'
 import type { RoundResult } from '../hooks/useGame'
 
 interface GamePageProps {
@@ -22,6 +23,7 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
   const wrongAttemptsRef = useRef(0)
   const [showAnswerAfterWrong, setShowAnswerAfterWrong] = useState(false)
   const [cardKey, setCardKey] = useState(0)
+  const [showHint, setShowHint] = useState(false)
   const startedRef = useRef(false)
   const showAnswerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -136,6 +138,10 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
     peekCard()
   }, [flipped, peekCard])
 
+  const handleHint = useCallback(() => {
+    setShowHint(true)
+  }, [])
+
   // Keyboard support: numbers, Delete/Backspace, Enter
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -165,6 +171,7 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
   const { deck, clearPile, retryPile, current } = gameState
   const done = clearPile.length + retryPile.length
   const total = deck.length + done
+  const tableColor = COLORS[table - 1]
 
   if (!current) {
     return <div class="screen active game-screen" />
@@ -176,6 +183,12 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
 
   return (
     <div class="screen active game-screen">
+      <HintModal
+        table={gameState.table}
+        isOpen={showHint}
+        onClose={() => setShowHint(false)}
+        tableColor={tableColor}
+      />
       <div class="game-header flex flex-wrap gap-3 md:gap-4">
         <button type="button" class="back-chip" onClick={handleBack} aria-label="Tillbaka">🔙</button>
         <div class="game-title">Gångertabell {gameState.table}</div>
@@ -231,6 +244,7 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
               disabled={flipped || showAnswerAfterWrong}
               user={user}
               onPeek={handlePeek}
+              onHint={handleHint}
               flipped={flipped}
             />
           </div>

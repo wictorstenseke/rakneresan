@@ -734,6 +734,128 @@ img.login-emoji {
   transform: none;
 }
 
+.btn-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 2px solid #eee;
+  border-radius: 12px;
+  background: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+  transition: border-color .2s, transform .2s;
+  touch-action: manipulation;
+  width: 100%;
+}
+
+.btn-hint .btn-icon {
+  font-size: 1.2rem;
+}
+
+.btn-hint:hover {
+  transform: scale(1.02);
+}
+
+/* HINT MODAL */
+.hint-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: hint-backdrop-in .2s ease forwards;
+}
+
+@keyframes hint-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.hint-modal {
+  background: white;
+  border-radius: 28px;
+  border-top: 6px solid var(--hint-tc, var(--tc));
+  padding: 24px 20px 28px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, .18);
+  animation: hint-modal-in .35s cubic-bezier(.34, 1.56, .64, 1) forwards;
+}
+
+@keyframes hint-modal-in {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.hint-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.hint-modal-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.3rem;
+  color: #333;
+}
+
+.hint-close-btn {
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #f0f0f0;
+  font-size: 1rem;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, transform .15s;
+  touch-action: manipulation;
+}
+
+.hint-close-btn:hover {
+  background: #e0e0e0;
+  transform: scale(1.1);
+}
+
+.hint-close-btn:focus-visible {
+  outline: 2px solid var(--hint-tc, var(--tc));
+  outline-offset: 2px;
+}
+
+.hint-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.hint-chip {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.4rem;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hint-tc, var(--tc)) 15%, white);
+  color: color-mix(in srgb, var(--hint-tc, var(--tc)) 80%, #222);
+  line-height: 1;
+  user-select: none;
+}
+
 /* NUMERIC KEYPAD */
 .keypad-wrapper {
   width: 100%;
