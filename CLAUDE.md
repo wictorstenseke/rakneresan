@@ -21,9 +21,16 @@ npm run lint       # ESLint
 ## Key Constraints
 
 - **iPad-first**: Touch targets must be at least 44×44px; use `dvh` not `vh`; respect `safe-area-inset-*`
-- **No Firebase yet**: Firebase is installed but not active. Do not wire up auth or Firestore until explicitly asked
-- **Storage adapter pattern**: All data access goes through `StorageAdapter` — this makes the Firebase migration seamless
+- **Storage adapter pattern**: All data access goes through `StorageAdapter` — never call Firebase directly from components or hooks
 - **Peek = retry**: Any card peek must move the card to the retry pile — this is a core game rule
+
+## Firebase
+
+- **Auth**: Email/password with fake emails (`username@matte.kort`) via `fakeEmail()` in `constants.ts`
+- **PIN → password**: PINs are doubled internally (`pinToPassword`) to meet Firebase's 6-char minimum — never store or expose this mapping
+- **Firestore**: Single doc per user at `users/{uid}` with a `tables` map. Security rules ensure users can only access their own doc.
+- **Config**: Read from `VITE_FIREBASE_*` env vars — stored in `.env.local` locally, GitHub Actions secrets for CI/deploy
+- **Offline**: Firestore uses `persistentLocalCache` + `persistentMultipleTabManager` for PWA/offline support
 
 ## File Conventions
 
@@ -32,3 +39,5 @@ npm run lint       # ESLint
 - Custom hooks live in `src/hooks/`
 - Shared types in `src/lib/storage.ts`
 - Shared constants in `src/lib/constants.ts`
+- Firebase init in `src/lib/firebase.ts`
+- Active storage adapter: `src/lib/storage.firebase.ts` (swap in `src/lib/storageContext.ts`)
