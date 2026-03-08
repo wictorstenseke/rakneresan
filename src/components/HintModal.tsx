@@ -13,7 +13,12 @@ const TABLE_NAMES = [
 ]
 
 function getTableHints(table: number): number[] {
-  return Array.from({ length: 10 }, (_, i) => (i + 1) * table)
+  const hints = Array.from({ length: 10 }, (_, i) => (i + 1) * table)
+  for (let i = hints.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[hints[i], hints[j]] = [hints[j], hints[i]]
+  }
+  return hints
 }
 
 export function HintModal({ table, isOpen, onClose, tableColor }: HintModalProps) {
