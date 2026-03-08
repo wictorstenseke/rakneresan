@@ -182,7 +182,7 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
           <button class="btn-primary" onClick={onContinue}>
             {allClear ? 'Spela igen! 🎮' : 'Fortsätt öva! 📚'}
           </button>
-          {allClear && (
+          {allClear && table !== 1 && table !== 10 && (
             <button class="btn-video-reward" onClick={() => setShowVideo(true)}>
               🎬 Se en belöningsvideo!
             </button>
