@@ -41,6 +41,24 @@ function shuffle<T>(arr: T[]): T[] {
 
 // --- Plus categories ---
 
+const TIOKOMPISAR_POOL: Array<{ a: number; b: number }> = [
+  { a: 1, b: 9 }, { a: 2, b: 8 }, { a: 3, b: 7 }, { a: 4, b: 6 }, { a: 5, b: 5 },
+  { a: 6, b: 4 }, { a: 7, b: 3 }, { a: 8, b: 2 }, { a: 9, b: 1 }, { a: 0, b: 10 },
+]
+
+const DUBBELKOMPISAR_POOL: Array<{ a: number; b: number }> = Array.from(
+  { length: 10 },
+  (_, i) => ({ a: i + 1, b: i + 1 }),
+)
+
+const PLUS_TILL_20_POOL: Array<{ a: number; b: number }> = [
+  { a: 3, b: 7 }, { a: 4, b: 8 }, { a: 5, b: 9 }, { a: 6, b: 7 }, { a: 7, b: 8 },
+  { a: 8, b: 9 }, { a: 9, b: 9 }, { a: 6, b: 9 }, { a: 7, b: 7 }, { a: 5, b: 8 },
+  { a: 4, b: 9 }, { a: 9, b: 6 }, { a: 8, b: 7 }, { a: 7, b: 6 }, { a: 6, b: 8 },
+  { a: 9, b: 4 }, { a: 8, b: 5 }, { a: 7, b: 9 }, { a: 9, b: 8 }, { a: 6, b: 6 },
+  { a: 5, b: 6 }, { a: 4, b: 7 }, { a: 3, b: 9 },
+]
+
 const LATT_HUNDRA_POOL: Array<{ a: number; b: number }> = [
   // Pure round hundreds
   { a: 100, b: 200 }, { a: 300, b: 400 }, { a: 200, b: 500 },
@@ -57,24 +75,6 @@ const LATT_HUNDRA_POOL: Array<{ a: number; b: number }> = [
   { a: 110, b: 90 }, { a: 250, b: 150 }, { a: 120, b: 80 },
   { a: 300, b: 150 },
 ]
-
-const TIOKOMPISAR_POOL: Array<{ a: number; b: number }> = [
-  { a: 1, b: 9 }, { a: 2, b: 8 }, { a: 3, b: 7 }, { a: 4, b: 6 }, { a: 5, b: 5 },
-  { a: 6, b: 4 }, { a: 7, b: 3 }, { a: 8, b: 2 }, { a: 9, b: 1 }, { a: 0, b: 10 },
-]
-
-const PLUS_TILL_20_POOL: Array<{ a: number; b: number }> = [
-  { a: 3, b: 7 }, { a: 4, b: 8 }, { a: 5, b: 9 }, { a: 6, b: 7 }, { a: 7, b: 8 },
-  { a: 8, b: 9 }, { a: 9, b: 9 }, { a: 6, b: 9 }, { a: 7, b: 7 }, { a: 5, b: 8 },
-  { a: 4, b: 9 }, { a: 9, b: 6 }, { a: 8, b: 7 }, { a: 7, b: 6 }, { a: 6, b: 8 },
-  { a: 9, b: 4 }, { a: 8, b: 5 }, { a: 7, b: 9 }, { a: 9, b: 8 }, { a: 6, b: 6 },
-  { a: 5, b: 6 }, { a: 4, b: 7 }, { a: 3, b: 9 },
-]
-
-const DUBBELKOMPISAR_POOL: Array<{ a: number; b: number }> = Array.from(
-  { length: 10 },
-  (_, i) => ({ a: i + 1, b: i + 1 }),
-)
 
 // --- Minus categories ---
 
@@ -102,15 +102,6 @@ const LATT_HUNDRA_MINUS_POOL: Array<{ a: number; b: number }> = [
 
 export const PLUS_CATEGORIES: CategoryDef[] = [
   {
-    id: 11,
-    operation: 'add',
-    label: 'Lätt hundra',
-    emoji: '💯',
-    color: '#6BCB77',
-    color2: '#00C9A7',
-    generateEquations: () => shuffle(LATT_HUNDRA_POOL).slice(0, 10),
-  },
-  {
     id: TEN_FRIENDS_CATEGORY_ID,
     operation: 'add',
     label: 'Tiokompisar',
@@ -118,6 +109,15 @@ export const PLUS_CATEGORIES: CategoryDef[] = [
     color: '#00C9A7',
     color2: '#4CC9F0',
     generateEquations: () => shuffle(TIOKOMPISAR_POOL).slice(0, 10),
+  },
+  {
+    id: 14,
+    operation: 'add',
+    label: 'Dubbelkompisar',
+    emoji: '🔢',
+    color: '#4D96FF',
+    color2: '#C77DFF',
+    generateEquations: () => shuffle(DUBBELKOMPISAR_POOL).slice(0, 10),
   },
   {
     id: 13,
@@ -129,13 +129,13 @@ export const PLUS_CATEGORIES: CategoryDef[] = [
     generateEquations: () => shuffle(PLUS_TILL_20_POOL).slice(0, 10),
   },
   {
-    id: 14,
+    id: 11,
     operation: 'add',
-    label: 'Dubbelkompisar',
-    emoji: '🔢',
-    color: '#4D96FF',
-    color2: '#C77DFF',
-    generateEquations: () => shuffle(DUBBELKOMPISAR_POOL).slice(0, 10),
+    label: 'Lätt hundra',
+    emoji: '💯',
+    color: '#6BCB77',
+    color2: '#00C9A7',
+    generateEquations: () => shuffle(LATT_HUNDRA_POOL).slice(0, 10),
   },
 ]
 
