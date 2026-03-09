@@ -16,6 +16,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  filter:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            app:
+              - 'src/**'
+              - 'index.html'
+              - 'public/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'vite.config.*'
+              - 'tsconfig*.json'
+              - 'tsconfig.app.json'
+              - 'tsconfig.node.json'
+              - 'tailwind.config.*'
+              - 'eslint.config.js'
+
   check:
     strategy:
       fail-fast: false
@@ -43,8 +67,8 @@ jobs:
           fi
 
   build:
-    needs: check
-    if: github.event_name == 'push'
+    needs: [check, filter]
+    if: github.event_name == 'push' && needs.filter.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
