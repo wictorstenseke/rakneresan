@@ -43,4 +43,8 @@ export const localStorageAdapter: StorageAdapter = {
     const all = loadAll()
     return all[username]?.pin === pin
   },
+
+  async logCompletion(_username: string, _table: number): Promise<void> {
+    // No-op for local adapter (inactive)
+  },
 }

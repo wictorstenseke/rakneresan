@@ -1,11 +1,16 @@
 import { useState, useCallback, useRef } from 'preact/hooks'
 import { storage } from '../lib/storageContext'
 import type { TableData } from '../lib/storage'
-import { buildDeck, isCorrectAnswer, computeEndRound } from '../lib/game-logic'
+import { buildDeck, isCorrectAnswer, isCorrectTenFriendsAnswer, computeEndRound } from '../lib/game-logic'
 import type { GameCard } from '../lib/game-logic'
+import { getCategoryDef, TEN_FRIENDS_CATEGORY_ID } from '../lib/constants'
+import type { Operation } from '../lib/constants'
 
 interface GameState {
   table: number
+  categoryId: number
+  operation: Operation
+  equations: Map<number, { a: number; b: number }>
   deck: GameCard[]
   clearPile: number[]
   retryPile: number[]
@@ -19,11 +24,15 @@ export interface RoundResult {
   retryCount: number
   allClear: boolean
   table: number
+  categoryId: number
   wins: number
 }
 
 const initialState: GameState = {
   table: 1,
+  categoryId: 1,
+  operation: 'multiply',
+  equations: new Map(),
   deck: [],
   clearPile: [],
   retryPile: [],
@@ -59,8 +68,13 @@ export function useGame(username: string) {
     })
   }, [])
 
-  const startGame = useCallback(async (table: number) => {
+  const startGame = useCallback(async (categoryId: number) => {
     setRoundResult(null)
+
+    const catDef = getCategoryDef(categoryId)
+    const operation: Operation = catDef?.operation ?? 'multiply'
+    // For multiply, table = categoryId; for plus/minus, table = categoryId (used as storage key)
+    const table = categoryId
 
     const userData = await storage.getUser(username)
     const tables = userData?.tables ?? {}
@@ -68,11 +82,32 @@ export function useGame(username: string) {
 
     let deck: GameCard[] = buildDeck(td)
 
+    // Build equation map for plus/minus categories
+    let equations = new Map<number, { a: number; b: number }>()
+    if (operation !== 'multiply' && catDef?.generateEquations) {
+      const eqs = catDef.generateEquations()
+      eqs.forEach((eq, i) => equations.set(i + 1, eq))
+    }
+
     // If all done, reset
     if (deck.length === 0) {
       deck = Array.from({ length: 10 }, (_, i) => ({ n: i + 1, fromRetry: false }))
       const resetTd: TableData = { wins: td.wins, clear: [], retry: [] }
       await storage.saveTableData(username, table, resetTd)
+      // Regenerate equations for the fresh deck
+      if (operation !== 'multiply' && catDef?.generateEquations) {
+        const eqs = catDef.generateEquations()
+        equations = new Map()
+        eqs.forEach((eq, i) => equations.set(i + 1, eq))
+      }
+    }
+
+    // Attach a/b to each card for plus/minus
+    if (operation !== 'multiply') {
+      deck = deck.map(card => {
+        const eq = equations.get(card.n)
+        return eq ? { ...card, a: eq.a, b: eq.b } : card
+      })
     }
 
     savedTdRef.current = td
@@ -80,6 +115,9 @@ export function useGame(username: string) {
     const current = pickRandom(deck)
     const newState: GameState = {
       table,
+      categoryId,
+      operation,
+      equations,
       deck,
       clearPile: [],
       retryPile: [],
@@ -92,7 +130,7 @@ export function useGame(username: string) {
   }, [username])
 
   const endRound = useCallback(async (state: GameState) => {
-    const { table, clearPile, retryPile } = state
+    const { table, clearPile, retryPile, categoryId } = state
 
     const userData = await storage.getUser(username)
     const tables = userData?.tables ?? {}
@@ -102,6 +140,7 @@ export function useGame(username: string) {
 
     if (allClear) {
       await storage.saveTableData(username, table, { wins, clear: [], retry: [] })
+      await storage.logCompletion(username, table)
     } else {
       await storage.saveTableData(username, table, { wins, clear: newClear, retry: newRetry })
     }
@@ -111,6 +150,7 @@ export function useGame(username: string) {
       retryCount: retryPile.length,
       allClear,
       table,
+      categoryId,
       wins,
     })
   }, [username])
@@ -162,7 +202,14 @@ export function useGame(username: string) {
     if (gs.busy || !gs.current) return 'invalid'
     if (isNaN(value)) return 'invalid'
 
-    if (isCorrectAnswer(gs.table, gs.current.n, value)) {
+    const a = gs.operation === 'multiply' ? gs.table : (gs.current.a ?? 0)
+    const b = gs.operation === 'multiply' ? gs.current.n : (gs.current.b ?? 0)
+    const isTenFriends = gs.categoryId === TEN_FRIENDS_CATEGORY_ID && gs.operation === 'add'
+    const isCorrect = isTenFriends
+      ? isCorrectTenFriendsAnswer(a, value)
+      : isCorrectAnswer(gs.operation, a, b, value)
+
+    if (isCorrect) {
       updateState(prev => ({ ...prev, busy: true }))
       setTimeout(() => {
         moveCard(true)
@@ -187,7 +234,7 @@ export function useGame(username: string) {
   }, [moveCard])
 
   const continueGame = useCallback(() => {
-    void startGame(gsRef.current.table)
+    void startGame(gsRef.current.categoryId)
   }, [startGame])
 
   /** Save progress mid-round so exiting the game screen doesn't lose answered cards. */

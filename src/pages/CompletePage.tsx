@@ -145,8 +145,8 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
               </div>
             )}
           </div>
-          <button class="btn-secondary video-back-btn" onClick={onBack}>
-            ← Tillbaka till tabellerna
+          <button class="video-back-btn video-back-btn-outline" onClick={onBack}>
+            Tillbaka
           </button>
         </div>
       </div>

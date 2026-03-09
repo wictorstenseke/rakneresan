@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildDeck, isCorrectAnswer, computeEndRound } from './game-logic'
+import { buildDeck, isCorrectAnswer, isCorrectTenFriendsAnswer, computeEndRound } from './game-logic'
 
 describe('buildDeck', () => {
   it('returns 10 cards when no prior progress', () => {
@@ -38,17 +38,54 @@ describe('buildDeck', () => {
 })
 
 describe('isCorrectAnswer', () => {
-  it('returns true for the correct product', () => {
-    expect(isCorrectAnswer(3, 7, 21)).toBe(true)
-    expect(isCorrectAnswer(5, 5, 25)).toBe(true)
-    expect(isCorrectAnswer(10, 10, 100)).toBe(true)
-    expect(isCorrectAnswer(1, 1, 1)).toBe(true)
+  it('returns true for the correct product (multiply)', () => {
+    expect(isCorrectAnswer('multiply', 3, 7, 21)).toBe(true)
+    expect(isCorrectAnswer('multiply', 5, 5, 25)).toBe(true)
+    expect(isCorrectAnswer('multiply', 10, 10, 100)).toBe(true)
+    expect(isCorrectAnswer('multiply', 1, 1, 1)).toBe(true)
   })
 
-  it('returns false for an incorrect answer', () => {
-    expect(isCorrectAnswer(3, 7, 22)).toBe(false)
-    expect(isCorrectAnswer(5, 5, 24)).toBe(false)
-    expect(isCorrectAnswer(10, 10, 99)).toBe(false)
+  it('returns false for an incorrect answer (multiply)', () => {
+    expect(isCorrectAnswer('multiply', 3, 7, 22)).toBe(false)
+    expect(isCorrectAnswer('multiply', 5, 5, 24)).toBe(false)
+    expect(isCorrectAnswer('multiply', 10, 10, 99)).toBe(false)
+  })
+
+  it('returns true for correct addition', () => {
+    expect(isCorrectAnswer('add', 3, 7, 10)).toBe(true)
+    expect(isCorrectAnswer('add', 5, 5, 10)).toBe(true)
+    expect(isCorrectAnswer('add', 100, 200, 300)).toBe(true)
+  })
+
+  it('returns false for incorrect addition', () => {
+    expect(isCorrectAnswer('add', 3, 7, 11)).toBe(false)
+  })
+
+  it('returns true for correct subtraction', () => {
+    expect(isCorrectAnswer('subtract', 10, 3, 7)).toBe(true)
+    expect(isCorrectAnswer('subtract', 20, 9, 11)).toBe(true)
+  })
+
+  it('returns false for incorrect subtraction', () => {
+    expect(isCorrectAnswer('subtract', 10, 3, 8)).toBe(false)
+  })
+})
+
+describe('isCorrectTenFriendsAnswer', () => {
+  it('accepts the missing addend for ten-friends equations', () => {
+    expect(isCorrectTenFriendsAnswer(6, 4)).toBe(true)
+    expect(isCorrectTenFriendsAnswer(8, 2)).toBe(true)
+    expect(isCorrectTenFriendsAnswer(3, 7)).toBe(true)
+  })
+
+  it('rejects answering 10 unless 10 is the missing addend', () => {
+    expect(isCorrectTenFriendsAnswer(6, 10)).toBe(false)
+    expect(isCorrectTenFriendsAnswer(0, 10)).toBe(true)
+  })
+
+  it('keeps normal addition behavior unchanged', () => {
+    expect(isCorrectAnswer('add', 6, 4, 10)).toBe(true)
+    expect(isCorrectAnswer('add', 6, 4, 4)).toBe(false)
   })
 })
 

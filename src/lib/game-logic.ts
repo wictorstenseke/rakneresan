@@ -1,8 +1,11 @@
 import type { TableData } from './storage'
+import type { Operation } from './constants'
 
 export interface GameCard {
   n: number
   fromRetry: boolean
+  a?: number
+  b?: number
 }
 
 /** Build the initial deck for a round from saved table data. */
@@ -16,9 +19,16 @@ export function buildDeck(td: TableData): GameCard[] {
   ]
 }
 
-/** Check whether a submitted answer is correct for a given table and card number. */
-export function isCorrectAnswer(table: number, cardNumber: number, value: number): boolean {
-  return table * cardNumber === value
+/** Check whether a submitted answer is correct for a given operation and operands. */
+export function isCorrectAnswer(operation: Operation, a: number, b: number, value: number): boolean {
+  if (operation === 'multiply') return a * b === value
+  if (operation === 'add') return a + b === value
+  return a - b === value
+}
+
+/** For Ten-Friends (a + x = 10), the correct input is the missing addend x. */
+export function isCorrectTenFriendsAnswer(a: number, value: number): boolean {
+  return 10 - a === value
 }
 
 export interface EndRoundUpdate {

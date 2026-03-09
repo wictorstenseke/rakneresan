@@ -4,8 +4,14 @@ export interface TableData {
   retry: number[]
 }
 
+export interface CompletionEntry {
+  table: number      // category ID
+  timestamp: number  // Date.now() in ms
+}
+
 export interface UserData {
   tables: Record<number, TableData>
+  completionLog?: CompletionEntry[]
 }
 
 export interface StorageAdapter {
@@ -13,4 +19,5 @@ export interface StorageAdapter {
   saveTableData(username: string, table: number, data: TableData): Promise<void>
   createUser(username: string, pin: string): Promise<void>
   validatePin(username: string, pin: string): Promise<boolean>
+  logCompletion(username: string, table: number): Promise<void>
 }

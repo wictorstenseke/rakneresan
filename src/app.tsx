@@ -12,7 +12,7 @@ type Screen = 'login' | 'home' | 'game' | 'complete' | 'stats'
 export function App() {
   const { currentUser, authReady, login, logout } = useAuth()
   const [screen, setScreen] = useState<Screen>('login')
-  const [selectedTable, setSelectedTable] = useState(1)
+  const [selectedTable, setSelectedTable] = useState(1)  // stores categoryId
 
   useEffect(() => {
     if (authReady && currentUser && screen === 'login') {
@@ -89,7 +89,7 @@ export function App() {
       return (
         <GamePage
           key={gameKey}
-          table={selectedTable}
+          categoryId={selectedTable}
           user={currentUser!}
           onBack={handleGameBack}
           onComplete={handleGameComplete}

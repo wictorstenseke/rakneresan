@@ -45,6 +45,7 @@ export function buildEmbedUrl(videoId: string): string {
     disablekb: '1',
     fs: '1',
     controls: '1',
+    playsinline: '1',
     autoplay: '1',
     enablejsapi: '1',
     origin,

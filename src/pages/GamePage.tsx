@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'preact/hooks'
-import { COLORS, COLORS2 } from '../lib/constants'
+import { getCategoryDef, TEN_FRIENDS_CATEGORY_ID } from '../lib/constants'
 import { useGame } from '../hooks/useGame'
 import { NumericKeypad } from '../components/NumericKeypad'
 import { HintModal } from '../components/HintModal'
 import type { RoundResult } from '../hooks/useGame'
 
 interface GamePageProps {
-  table: number
+  categoryId: number
   user: string
   onBack: () => void
   onComplete: (result: RoundResult) => void
@@ -14,7 +14,7 @@ interface GamePageProps {
 
 const SHOW_ANSWER_DURATION_MS = 12000
 
-export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
+export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps) {
   const { gameState, roundResult, startGame, submitAnswer, peekCard, moveToRetry, saveProgress } = useGame(user)
   const [inputValue, setInputValue] = useState('')
   const [answerState, setAnswerState] = useState<'idle' | 'correct' | 'wrong'>('idle')
@@ -27,19 +27,21 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
   const startedRef = useRef(false)
   const showAnswerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const catDef = getCategoryDef(categoryId)
+
   // Start game on mount
   useEffect(() => {
     if (!startedRef.current) {
       startedRef.current = true
 
-      const color = COLORS[table - 1]
-      const color2 = COLORS2[table - 1]
+      const color = catDef?.color ?? '#4D96FF'
+      const color2 = catDef?.color2 ?? '#6BCB77'
       document.documentElement.style.setProperty('--tc', color)
       document.documentElement.style.setProperty('--tc2', color2)
 
-      void startGame(table)
+      void startGame(categoryId)
     }
-  }, [table, startGame])
+  }, [categoryId, catDef, startGame])
 
   // Handle round completion
   useEffect(() => {
@@ -168,30 +170,38 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [flipped, showAnswerAfterWrong, handleSubmit, handleShowAnswerDismiss])
 
-  const { deck, clearPile, retryPile, current } = gameState
+  const { deck, clearPile, retryPile, current, operation } = gameState
   const done = clearPile.length + retryPile.length
   const total = deck.length + done
-  const tableColor = COLORS[table - 1]
+  const tableColor = catDef?.color ?? '#4D96FF'
 
   if (!current) {
     return <div class="screen active game-screen" />
   }
 
-  const question = `${gameState.table} × ${current.n}`
-  const answer = gameState.table * current.n
+  const sym = operation === 'multiply' ? '×' : operation === 'add' ? '+' : '−'
+  const a = operation === 'multiply' ? gameState.table : (current.a ?? 0)
+  const b = operation === 'multiply' ? current.n : (current.b ?? 0)
+  const isTenFriends = categoryId === TEN_FRIENDS_CATEGORY_ID && operation === 'add'
+  const question = isTenFriends ? `${a} + ?` : `${a} ${sym} ${b}`
+  const answer = isTenFriends ? b : operation === 'multiply' ? a * b : operation === 'add' ? a + b : a - b
+  const backLabel = isTenFriends ? `${a} + ${b} = 10` : `${question} = ${answer}`
+
   const answerDisplayClass = `answer-display${answerState !== 'idle' ? ` ${answerState}` : ''}`
 
   return (
     <div class="screen active game-screen">
       <HintModal
-        table={gameState.table}
+        categoryId={categoryId}
+        operation={operation}
         isOpen={showHint}
         onClose={() => setShowHint(false)}
         tableColor={tableColor}
+        equations={Array.from(gameState.equations.values())}
       />
       <div class="game-header flex flex-wrap gap-3 md:gap-4">
         <button type="button" class="back-chip" onClick={handleBack} aria-label="Tillbaka">🔙</button>
-        <div class="game-title">Gångertabell {gameState.table}</div>
+        <div class="game-title">{catDef?.label ?? `Kategori ${categoryId}`}</div>
         <div class="progress-text">{done}/{total}</div>
       </div>
 
@@ -226,7 +236,7 @@ export function GamePage({ table, user, onBack, onComplete }: GamePageProps) {
                 </div>
                 <div class="card-face card-back">
                   <div class="card-answer">{answer}</div>
-                  <div class="card-answer-label">{question} = {answer}</div>
+                  <div class="card-answer-label">{backLabel}</div>
                 </div>
               </div>
             </div>
