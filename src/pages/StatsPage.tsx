@@ -173,7 +173,7 @@ export function StatsPage({ user, onBack }: StatsPageProps) {
                       <div key={id} class="stats-table-completion-item" style={`--tc:${cat?.color ?? '#888'}`}>
                         <span class="stats-table-num">{cat?.emoji ?? '❓'}</span>
                         <span class="stats-table-emoji-count">
-                          <span class="stats-table-emoji" style="font-size:0.7em">{cat?.label ?? `Kategori ${id}`}</span>
+                          <span class="stats-table-emoji" style="font-size:0.7em;text-transform:uppercase">{cat?.label ?? `Kategori ${id}`}</span>
                           <span class="stats-table-count">{stats.tableCompletions[id]}×</span>
                         </span>
                       </div>

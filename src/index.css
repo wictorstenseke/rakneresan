@@ -924,7 +924,7 @@ img.login-emoji {
 .history-modal-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: 4px; }
 .history-row { display: flex; align-items: center; gap: 12px; padding: 10px 4px; border-bottom: 1px solid #f0f0f0; }
 .history-row:last-child { border-bottom: none; }
-.history-table-chip { font-family: 'Fredoka One', cursive; font-size: 1.1rem; padding: 6px 14px; border-radius: 999px; background: color-mix(in srgb, var(--hc) 15%, white); color: color-mix(in srgb, var(--hc) 80%, #222); flex-shrink: 0; }
+.history-table-chip { font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 0.95rem; padding: 6px 14px; border-radius: 999px; background: color-mix(in srgb, var(--hc) 15%, white); color: color-mix(in srgb, var(--hc) 80%, #222); flex-shrink: 0; }
 .history-date { font-size: .85rem; color: #888; margin-left: auto; white-space: nowrap; }
 
 /* NUMERIC KEYPAD */
