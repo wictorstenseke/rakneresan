@@ -17,6 +17,10 @@ concurrency:
 
 jobs:
   check:
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [typecheck, lint, test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,14 +32,15 @@ jobs:
 
       - run: npm ci
 
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Test
-        run: npm test
+      - name: Run ${{ matrix.task }}
+        run: |
+          if [ "${{ matrix.task }}" = "typecheck" ]; then
+            npm run typecheck
+          elif [ "${{ matrix.task }}" = "lint" ]; then
+            npm run lint
+          elif [ "${{ matrix.task }}" = "test" ]; then
+            npm test
+          fi
 
   build:
     needs: check
