@@ -130,32 +130,32 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
   if (showVideo) {
     return (
       <div class="screen active video-reward-screen">
-        <div class="video-reward-wrap">
-          <div class={`yt-iframe-wrap${isExpanded ? ' yt-iframe-wrap--expanded' : ''}`}>
-            <iframe
-              id="yt-reward-player"
-              src={buildEmbedUrl(videoId)}
-              title="Belöningsvideo"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-              allowFullScreen
-              frameBorder="0"
-              class="yt-iframe"
-            />
-            {videoEnded && (
-              <div class="yt-ended-overlay">
-                <span class="yt-ended-emoji">🎬</span>
-                <p class="yt-ended-msg">Video klart!</p>
-              </div>
-            )}
-            <button
-              class="yt-expand-btn"
-              onClick={() => setIsExpanded(v => !v)}
-              aria-label={isExpanded ? 'Minimera video' : 'Förstora video'}
-            >
-              {isExpanded ? '✕' : '⛶'}
-            </button>
-          </div>
-          <button class="video-back-btn video-back-btn-outline" onClick={onBack}>
+        <div class={`yt-iframe-wrap${isExpanded ? ' yt-iframe-wrap--expanded' : ''}`}>
+          <iframe
+            id="yt-reward-player"
+            src={buildEmbedUrl(videoId)}
+            title="Belöningsvideo"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allowFullScreen
+            frameBorder="0"
+            class="yt-iframe"
+          />
+          {videoEnded && (
+            <div class="yt-ended-overlay">
+              <span class="yt-ended-emoji">🎬</span>
+              <p class="yt-ended-msg">Video klart!</p>
+            </div>
+          )}
+        </div>
+        <div class="video-action-btns">
+          <button
+            class="video-back-btn-outline"
+            onClick={() => setIsExpanded(v => !v)}
+            aria-label={isExpanded ? 'Zooma ut' : 'Zooma in'}
+          >
+            {isExpanded ? '⊖ Zooma ut' : '⊕ Zooma in'}
+          </button>
+          <button class="video-back-btn-outline" onClick={onBack}>
             Tillbaka
           </button>
         </div>
