@@ -1388,13 +1388,22 @@ img.login-emoji {
   gap: 10px;
 }
 
+.complete-btns .btn-primary,
+.complete-btns .btn-video-reward,
+.complete-btns .btn-secondary {
+  font-size: 1rem;
+}
+
 .btn-secondary {
   padding: 14px;
   background: white;
   border: 3px solid #eee;
   border-radius: 14px;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
   cursor: pointer;
   color: #555;
   transition: all .2s;
@@ -1413,8 +1422,11 @@ img.login-emoji {
   color: white;
   border: none;
   border-radius: 14px;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
   cursor: pointer;
   transition: transform .15s, box-shadow .15s;
   box-shadow: 0 6px 20px rgba(199, 125, 255, 0.4);

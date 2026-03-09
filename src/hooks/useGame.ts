@@ -129,21 +129,11 @@ export function useGame(username: string) {
     setGameState(newState)
   }, [username])
 
-  const endRound = useCallback(async (state: GameState) => {
+  const endRound = useCallback((state: GameState) => {
     const { table, clearPile, retryPile, categoryId } = state
-
-    const userData = await storage.getUser(username)
-    const tables = userData?.tables ?? {}
-    const td: TableData = tables[table] ?? { wins: 0, clear: [], retry: [] }
+    const td = savedTdRef.current
 
     const { newClear, newRetry, allClear, wins } = computeEndRound(td, clearPile, retryPile)
-
-    if (allClear) {
-      await storage.saveTableData(username, table, { wins, clear: [], retry: [] })
-      await storage.logCompletion(username, table)
-    } else {
-      await storage.saveTableData(username, table, { wins, clear: newClear, retry: newRetry })
-    }
 
     setRoundResult({
       clearCount: clearPile.length,
@@ -153,6 +143,14 @@ export function useGame(username: string) {
       categoryId,
       wins,
     })
+
+    // Spara i bakgrunden – blockerar inte UI
+    void (allClear
+      ? Promise.all([
+          storage.saveTableData(username, table, { wins, clear: [], retry: [] }),
+          storage.logCompletion(username, table),
+        ])
+      : storage.saveTableData(username, table, { wins, clear: newClear, retry: newRetry }))
   }, [username])
 
   const backgroundSave = useCallback((clearPile: number[], retryPile: number[]) => {
@@ -187,7 +185,7 @@ export function useGame(username: string) {
     if (newDeck.length === 0) {
       gsRef.current = updated
       setGameState(updated)
-      void endRound(updated)
+      endRound(updated)
       return
     }
 
@@ -211,9 +209,10 @@ export function useGame(username: string) {
 
     if (isCorrect) {
       updateState(prev => ({ ...prev, busy: true }))
+      const isLastCard = gs.deck.length === 1
       setTimeout(() => {
         moveCard(true)
-      }, 1400)
+      }, isLastCard ? 900 : 1400)
       return 'correct'
     } else {
       return 'wrong'

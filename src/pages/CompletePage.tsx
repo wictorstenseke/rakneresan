@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks'
 import type { RoundResult } from '../hooks/useGame'
+import { getCategoryDef } from '../lib/constants'
 import { buildEmbedUrl, pickRandomVideoId } from '../lib/youtube'
 
 declare global {
@@ -91,7 +92,8 @@ function loadYouTubeApi(onReady: () => void) {
 }
 
 export function CompletePage({ result, onContinue, onBack }: CompletePageProps) {
-  const { clearCount, retryCount, allClear, table, wins } = result
+  const { clearCount, retryCount, allClear, categoryId, wins } = result
+  const categoryLabel = getCategoryDef(categoryId)?.label ?? `${categoryId}:ans tabell`
   const confettiRef = useRef<HTMLDivElement>(null)
   const reaction = getReaction(allClear, clearCount, retryCount)
 
@@ -163,7 +165,7 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
 
         {allClear && wins > 0 && (
           <div class="streak-badge">
-            🔥 {wins} {wins === 1 ? 'vinst' : 'vinster'} på {table}:ans tabell!
+            🔥 {wins} {wins === 1 ? 'vinst' : 'vinster'} på {categoryLabel}!
           </div>
         )}
 
@@ -182,13 +184,13 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
           <button class="btn-primary" onClick={onContinue}>
             {allClear ? 'Spela igen! 🎮' : 'Fortsätt öva! 📚'}
           </button>
-          {allClear && table !== 1 && table !== 10 && (
+          {allClear && categoryId !== 1 && categoryId !== 10 && (
             <button class="btn-video-reward" onClick={() => setShowVideo(true)}>
-              🎬 Se en belöningsvideo!
+              Se en belöningsvideo! 🎬
             </button>
           )}
           <button class="btn-secondary" onClick={onBack}>
-            ← Tillbaka till tabellerna
+            Tillbaka
           </button>
         </div>
       </div>

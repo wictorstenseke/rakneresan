@@ -317,14 +317,10 @@ describe('useGame', () => {
 
       await act(() => { result.current.submitAnswer(correctAnswer) })
 
-      // Advance past the moveCard timeout
-      await act(async () => {
-        vi.advanceTimersByTime(1500)
-        // Allow promises to settle
-        await vi.runAllTimersAsync()
-      })
+      // Advance past the moveCard timeout (900ms for last card)
+      await act(() => { vi.advanceTimersByTime(1000) })
 
-      // roundResult should be set after endRound
+      // roundResult should be set synchronously after endRound
       expect(result.current.roundResult).not.toBeNull()
       expect(result.current.roundResult!.allClear).toBe(true)
       expect(result.current.roundResult!.wins).toBe(1)
@@ -345,12 +341,10 @@ describe('useGame', () => {
       const card = result.current.gameState.current!
       await act(() => { result.current.submitAnswer(3 * card.n) })
 
-      await act(async () => {
-        vi.advanceTimersByTime(1500)
-        await vi.runAllTimersAsync()
-      })
+      // Advance past the moveCard timeout (900ms for last card)
+      await act(() => { vi.advanceTimersByTime(1000) })
 
-      // Should have called saveTableData for the final result
+      // Should have called saveTableData for the final result (fire-and-forget)
       expect(mockStorage.saveTableData).toHaveBeenCalled()
       // Should have logged completion (allClear)
       expect(mockStorage.logCompletion).toHaveBeenCalledWith('testuser', 3)
