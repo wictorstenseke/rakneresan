@@ -183,7 +183,9 @@ export function StatsPage({ user, onBack }: StatsPageProps) {
               )}
             </div>
 
-            <div class="stats-highlights">
+            <div class="stats-highlights-section">
+              <div class="stats-table-completions-title">Sammanfattning</div>
+              <div class="stats-highlights">
               {stats.mostPlayedTable !== null && (() => {
                 const cat = getCategoryDef(stats.mostPlayedTable)
                 const color = cat?.color ?? COLORS[(stats.mostPlayedTable - 1) % COLORS.length]
@@ -237,6 +239,7 @@ export function StatsPage({ user, onBack }: StatsPageProps) {
                   </div>
                 )
               })()}
+              </div>
             </div>
           </>
         )}

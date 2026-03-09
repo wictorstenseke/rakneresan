@@ -791,6 +791,12 @@ img.login-emoji {
   transform: none;
 }
 
+.btn-peek.btn-peek-confirming {
+  border-color: #d44;
+  color: #c33;
+  background: #fef2f2;
+}
+
 .btn-hint {
   display: flex;
   align-items: center;
@@ -1216,12 +1222,19 @@ img.login-emoji {
   color: #666;
 }
 
+.stats-highlights-section {
+  margin-bottom: 28px;
+}
+
+.stats-highlights-section .stats-table-completions-title {
+  margin-bottom: 12px;
+}
+
 .stats-highlights {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 28px;
 }
 
 .highlight-row {

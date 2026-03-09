@@ -25,6 +25,7 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
   const [pressedKey, setPressedKey] = useState<string | null>(null)
   const [rightHanded, setRightHanded] = useState(true)
   const [isSwitching, setIsSwitching] = useState(false)
+  const [peekConfirming, setPeekConfirming] = useState(false)
 
   // Load persisted handedness preference
   useEffect(() => {
@@ -43,6 +44,23 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
       return next
     })
   }, [user])
+
+  // Reset peek confirmation after 2s if user doesn't confirm
+  useEffect(() => {
+    if (!peekConfirming) return
+    const t = setTimeout(() => setPeekConfirming(false), 2000)
+    return () => clearTimeout(t)
+  }, [peekConfirming])
+
+  const handlePeekClick = useCallback(() => {
+    if (!onPeek) return
+    if (peekConfirming) {
+      onPeek()
+      setPeekConfirming(false)
+    } else {
+      setPeekConfirming(true)
+    }
+  }, [onPeek, peekConfirming])
 
   const handleKey = useCallback((key: string) => {
     if (disabled) return
@@ -83,18 +101,6 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
       </div>
       <div class="keypad-toggle-separator" />
       <div class="keypad-toggle-row">
-        {onPeek && (
-          <button
-            type="button"
-            class="btn-peek"
-            onClick={onPeek}
-            disabled={flipped}
-            aria-label="Titta på svaret"
-          >
-            <span class="btn-icon">👀</span>
-            <span class="btn-text">Kolla svar</span>
-          </button>
-        )}
         {onHint && (
           <button
             type="button"
@@ -115,6 +121,18 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
           <span class="btn-icon">⌨️</span>
           <span class="btn-text">Byt sida</span>
         </button>
+        {onPeek && (
+          <button
+            type="button"
+            class={`btn-peek${peekConfirming ? ' btn-peek-confirming' : ''}`}
+            onClick={handlePeekClick}
+            disabled={flipped}
+            aria-label={peekConfirming ? 'Bekräfta titta på svaret' : 'Titta på svaret'}
+          >
+            {!peekConfirming && <span class="btn-icon">👀</span>}
+            <span class="btn-text">{peekConfirming ? 'Säker?' : 'Kolla svar'}</span>
+          </button>
+        )}
       </div>
     </div>
   )
