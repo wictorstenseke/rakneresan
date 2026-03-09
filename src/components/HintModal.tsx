@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'preact/hooks'
 import { TEN_FRIENDS_CATEGORY_ID } from '../lib/constants'
+import { getMultiplyHints, opSymbol } from '../lib/hint-utils'
 import type { Operation } from '../lib/constants'
 
 interface HintModalProps {
@@ -15,21 +16,6 @@ const TABLE_NAMES = [
   'Ettans', 'Tvåans', 'Treans', 'Fyrans', 'Femans',
   'Sexans', 'Sjuans', 'Åttans', 'Nians', 'Tians',
 ]
-
-function getMultiplyHints(table: number): number[] {
-  const hints = Array.from({ length: 10 }, (_, i) => (i + 1) * table)
-  for (let i = hints.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[hints[i], hints[j]] = [hints[j], hints[i]]
-  }
-  return hints
-}
-
-function opSymbol(operation: Operation): string {
-  if (operation === 'add') return '+'
-  if (operation === 'subtract') return '−'
-  return '×'
-}
 
 export function HintModal({ categoryId, operation, isOpen, onClose, tableColor, equations }: HintModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null)
