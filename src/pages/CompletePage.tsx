@@ -100,6 +100,7 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
   const [showVideo, setShowVideo] = useState(false)
   const [videoId] = useState(() => pickRandomVideoId())
   const [videoEnded, setVideoEnded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
     if (confettiRef.current && (allClear || retryCount === 0)) {
@@ -130,7 +131,7 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
     return (
       <div class="screen active video-reward-screen">
         <div class="video-reward-wrap">
-          <div class="yt-iframe-wrap">
+          <div class={`yt-iframe-wrap${isExpanded ? ' yt-iframe-wrap--expanded' : ''}`}>
             <iframe
               id="yt-reward-player"
               src={buildEmbedUrl(videoId)}
@@ -146,6 +147,13 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
                 <p class="yt-ended-msg">Video klart!</p>
               </div>
             )}
+            <button
+              class="yt-expand-btn"
+              onClick={() => setIsExpanded(v => !v)}
+              aria-label={isExpanded ? 'Minimera video' : 'Förstora video'}
+            >
+              {isExpanded ? '✕' : '⛶'}
+            </button>
           </div>
           <button class="video-back-btn video-back-btn-outline" onClick={onBack}>
             Tillbaka
