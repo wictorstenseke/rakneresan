@@ -30,9 +30,9 @@ describe('HistoryModal', () => {
     )
     const rows = container.querySelectorAll('.history-row')
     expect(rows).toHaveLength(3)
-    expect(rows[0].textContent).toContain('Gångertabell 2')
-    expect(rows[1].textContent).toContain('Gångertabell 3')
-    expect(rows[2].textContent).toContain('Gångertabell 1')
+    expect(rows[0].textContent).toContain('2:ans tabell')
+    expect(rows[1].textContent).toContain('3:ans tabell')
+    expect(rows[2].textContent).toContain('1:ans tabell')
   })
 
   it('close button calls onClose', () => {

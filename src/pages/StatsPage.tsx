@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks'
-import { COLORS, EMOJIS, getCategoryDef } from '../lib/constants'
+import { COLORS, EMOJIS, ALL_CATEGORIES, getCategoryDef } from '../lib/constants'
 import { storage } from '../lib/storageContext'
 import type { UserData, CompletionEntry } from '../lib/storage'
 import { HistoryModal } from '../components/HistoryModal'
@@ -77,13 +77,9 @@ function computeStats(userData: UserData): Stats {
   }
 
   const tableCompletions: Record<number, number> = {}
-  for (let t = 1; t <= 10; t++) {
-    const td = tables[t]
-    tableCompletions[t] = td?.wins ?? 0
-  }
-  for (const id of [11, 12, 13, 21, 22, 23]) {
-    const td = tables[id]
-    if (td && td.wins > 0) tableCompletions[id] = td.wins
+  for (const cat of ALL_CATEGORIES) {
+    const td = tables[cat.id]
+    tableCompletions[cat.id] = td?.wins ?? 0
   }
 
   return { mostPlayedTable, hardestNumber, easiestNumber, totalWins, totalClears, totalRetries, tableCompletions }
@@ -113,135 +109,108 @@ export function StatsPage({ user, onBack }: StatsPageProps) {
 
   const hasData = stats.totalWins > 0 || stats.totalClears > 0 || stats.totalRetries > 0
 
+  const sortedCategories = [...ALL_CATEGORIES]
+    .map(cat => ({ ...cat, count: stats.tableCompletions[cat.id] ?? 0 }))
+    .sort((a, b) => b.count - a.count)
+
   return (
     <div class="screen active stats-screen">
       <div class="stats-header flex flex-wrap gap-3 md:gap-4">
         <button type="button" class="back-chip" onClick={onBack} aria-label="Tillbaka">🔙</button>
         <h1 class="stats-title">Statistik</h1>
+        <button type="button" class="back-chip" onClick={() => setShowHistory(true)}>
+          📋 Historik
+        </button>
       </div>
 
       <div class="stats-content">
         {!hasData ? (
           <p class="stats-empty">Ingen data ännu! Spela lite först 🎮</p>
         ) : (
-          <>
-            <div class="stats-grid">
-              <div class="stat-card" style={`--tc:${COLORS[4]}`}>
-                <div class="stat-icon">🏆</div>
-                <div class="stat-value">{stats.totalWins}</div>
-                <div class="stat-desc">Totala vinster</div>
-              </div>
-              <div class="stat-card" style={`--tc:${COLORS[3]}`}>
-                <div class="stat-icon">✅</div>
-                <div class="stat-value">{stats.totalClears}</div>
-                <div class="stat-desc">Klara kort</div>
-              </div>
-              <div class="stat-card" style={`--tc:${COLORS[1]}`}>
-                <div class="stat-icon">🔄</div>
-                <div class="stat-value">{stats.totalRetries}</div>
-                <div class="stat-desc">Öva igen</div>
-              </div>
-            </div>
-
-            <div class="stats-table-completions">
-              <div class="stats-table-completions-header">
-                <div class="stats-table-completions-title">Tabeller klara (antal gånger)</div>
-                <button
-                  type="button"
-                  class="back-chip"
-                  onClick={() => setShowHistory(true)}
-                >
-                  📋 Historik
-                </button>
-              </div>
-              <div class="stats-table-completions-grid">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map(t => (
-                  <div key={t} class="stats-table-completion-item" style={`--tc:${COLORS[t - 1]}`}>
-                    <span class="stats-table-num">{t}</span>
-                    <span class="stats-table-emoji-count">
-                      <span class="stats-table-emoji">{EMOJIS[t - 1]}</span>
-                      <span class="stats-table-count">{stats.tableCompletions[t] ?? 0}×</span>
-                    </span>
+            <div class="stats-layout-experimental">
+              <div class="stats-sidebar">
+                <h2 class="stats-section-label">Översikt</h2>
+                <div class="stats-sidebar-summary">
+                  <div class="stats-highlights">
+                  <div class="highlight-row" style={`--tc:${COLORS[4]}`}>
+                    <span class="highlight-icon" style={`color:${COLORS[4]}`}>🏆</span>
+                    <div>
+                      <div class="highlight-title">Totala vinster</div>
+                      <div class="highlight-value">{stats.totalWins}</div>
+                    </div>
                   </div>
-                ))}
-              </div>
-              {[11, 12, 13, 21, 22, 23].some(id => (stats.tableCompletions[id] ?? 0) > 0) && (
-                <div class="stats-table-completions-grid" style="margin-top:8px">
-                  {[11, 12, 13, 21, 22, 23].filter(id => (stats.tableCompletions[id] ?? 0) > 0).map(id => {
-                    const cat = getCategoryDef(id)
+                  {stats.mostPlayedTable !== null && (() => {
+                    const cat = getCategoryDef(stats.mostPlayedTable)
+                    const color = cat?.color ?? COLORS[(stats.mostPlayedTable - 1) % COLORS.length]
+                    const emoji = cat?.emoji ?? EMOJIS[(stats.mostPlayedTable - 1) % EMOJIS.length]
+                    const label = cat?.label ?? `${stats.mostPlayedTable}:ans tabell`
                     return (
-                      <div key={id} class="stats-table-completion-item" style={`--tc:${cat?.color ?? '#888'}`}>
-                        <span class="stats-table-num">{cat?.emoji ?? '❓'}</span>
-                        <span class="stats-table-emoji-count">
-                          <span class="stats-table-emoji" style="font-size:0.7em;text-transform:uppercase">{cat?.label ?? `Kategori ${id}`}</span>
-                          <span class="stats-table-count">{stats.tableCompletions[id]}×</span>
-                        </span>
+                      <div class="highlight-row" style={`--tc:${color}`}>
+                        <span class="highlight-icon" style={`color:${color}`}>{emoji}</span>
+                        <div>
+                          <div class="highlight-title">Mest spelade kategori</div>
+                          <div class="highlight-value">{label}</div>
+                        </div>
                       </div>
                     )
-                  })}
+                  })()}
+
+                  {stats.hardestNumber !== null && (() => {
+                    const cat = getCategoryDef(stats.hardestNumber.table)
+                    const color = cat?.color ?? COLORS[(stats.hardestNumber.table - 1) % COLORS.length]
+                    return (
+                      <div class="highlight-row" style={`--tc:${color}`}>
+                        <span class="highlight-icon">🔥</span>
+                        <div>
+                          <div class="highlight-title">Svårast tal</div>
+                          <div class="highlight-value">
+                            {cat?.operation === 'multiply'
+                              ? `${stats.hardestNumber.table} × ${stats.hardestNumber.n} = ${stats.hardestNumber.table * stats.hardestNumber.n}`
+                              : `${cat?.label ?? `Kategori ${stats.hardestNumber.table}`} – kort ${stats.hardestNumber.n}`
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {stats.easiestNumber !== null && (() => {
+                    const cat = getCategoryDef(stats.easiestNumber.table)
+                    const color = cat?.color ?? COLORS[(stats.easiestNumber.table - 1) % COLORS.length]
+                    return (
+                      <div class="highlight-row" style={`--tc:${color}`}>
+                        <span class="highlight-icon">⚡</span>
+                        <div>
+                          <div class="highlight-title">Lättaste tal</div>
+                          <div class="highlight-value">
+                            {cat?.operation === 'multiply'
+                              ? `${stats.easiestNumber.table} × ${stats.easiestNumber.n} = ${stats.easiestNumber.table * stats.easiestNumber.n}`
+                              : `${cat?.label ?? `Kategori ${stats.easiestNumber.table}`} – kort ${stats.easiestNumber.n}`
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()}
+                  </div>
                 </div>
-              )}
-            </div>
-
-            <div class="stats-highlights-section">
-              <div class="stats-table-completions-title">Sammanfattning</div>
-              <div class="stats-highlights">
-              {stats.mostPlayedTable !== null && (() => {
-                const cat = getCategoryDef(stats.mostPlayedTable)
-                const color = cat?.color ?? COLORS[(stats.mostPlayedTable - 1) % COLORS.length]
-                const emoji = cat?.emoji ?? EMOJIS[(stats.mostPlayedTable - 1) % EMOJIS.length]
-                const label = cat?.label ?? `${stats.mostPlayedTable}:ans gångertabell`
-                return (
-                  <div class="highlight-row" style={`--tc:${color}`}>
-                    <span class="highlight-icon" style={`color:${color}`}>{emoji}</span>
-                    <div>
-                      <div class="highlight-title">Mest spelade kategori</div>
-                      <div class="highlight-value">{label}</div>
-                    </div>
-                  </div>
-                )
-              })()}
-
-              {stats.hardestNumber !== null && (() => {
-                const cat = getCategoryDef(stats.hardestNumber.table)
-                const color = cat?.color ?? COLORS[(stats.hardestNumber.table - 1) % COLORS.length]
-                return (
-                  <div class="highlight-row" style={`--tc:${color}`}>
-                    <span class="highlight-icon">🔥</span>
-                    <div>
-                      <div class="highlight-title">Svårast tal</div>
-                      <div class="highlight-value">
-                        {cat?.operation === 'multiply'
-                          ? `${stats.hardestNumber.table} × ${stats.hardestNumber.n} = ${stats.hardestNumber.table * stats.hardestNumber.n}`
-                          : `${cat?.label ?? `Kategori ${stats.hardestNumber.table}`} – kort ${stats.hardestNumber.n}`
-                        }
-                      </div>
-                    </div>
-                  </div>
-                )
-              })()}
-
-              {stats.easiestNumber !== null && (() => {
-                const cat = getCategoryDef(stats.easiestNumber.table)
-                const color = cat?.color ?? COLORS[(stats.easiestNumber.table - 1) % COLORS.length]
-                return (
-                  <div class="highlight-row" style={`--tc:${color}`}>
-                    <span class="highlight-icon">⚡</span>
-                    <div>
-                      <div class="highlight-title">Lättaste tal</div>
-                      <div class="highlight-value">
-                        {cat?.operation === 'multiply'
-                          ? `${stats.easiestNumber.table} × ${stats.easiestNumber.n} = ${stats.easiestNumber.table * stats.easiestNumber.n}`
-                          : `${cat?.label ?? `Kategori ${stats.easiestNumber.table}`} – kort ${stats.easiestNumber.n}`
-                        }
-                      </div>
-                    </div>
-                  </div>
-                )
-              })()}
+              </div>
+              <div class="stats-completion-list-col">
+                <h2 class="stats-section-label">Klarade utmaningar</h2>
+                <ul class="stats-completion-list">
+                  {sortedCategories.map(cat => (
+                    <li
+                      key={cat.id}
+                      class={cat.count === 0 ? 'stats-completion-item disabled' : 'stats-completion-item'}
+                      style={cat.count > 0 ? `--tc:${cat.color}` : undefined}
+                    >
+                      <span class="stats-completion-name">{cat.emoji} {cat.label}</span>
+                      <span class="stats-completion-count">{cat.count}×</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
-          </>
         )}
       </div>
       <HistoryModal

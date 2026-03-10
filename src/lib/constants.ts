@@ -172,7 +172,7 @@ export const MINUS_CATEGORIES: CategoryDef[] = [
 export const MULTIPLY_CATEGORIES: CategoryDef[] = Array.from({ length: 10 }, (_, i) => ({
   id: i + 1,
   operation: 'multiply' as Operation,
-  label: `Gångertabell ${i + 1}`,
+  label: `${i + 1}:ans tabell`,
   emoji: EMOJIS[i],
   color: COLORS[i],
   color2: COLORS2[i],

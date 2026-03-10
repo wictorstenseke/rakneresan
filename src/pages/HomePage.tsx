@@ -100,7 +100,7 @@ export function HomePage({ user, onSelectTable, onLogout, onStats }: HomePagePro
                 {activeOp === 'multiply' ? (
                   <>
                     <div class="table-num">{cat.id}</div>
-                    <div class="table-label">Gångertabell</div>
+                    <div class="table-label">{cat.label}</div>
                   </>
                 ) : (
                   <>
