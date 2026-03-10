@@ -68,7 +68,7 @@ export function HomePage({ user, onSelectTable, onLogout, onStats }: HomePagePro
         </div>
       </div>
 
-      <div class="flex-1 flex flex-col justify-center w-full max-w-[900px] max-sm:portrait:justify-start">
+      <div class="flex-1 flex flex-col justify-center w-full max-w-[900px] max-sm:portrait:justify-start gap-6">
         {/* Operation tabs */}
         <div class="flex flex-wrap gap-1.5">
           {TABS.map(tab => {
@@ -77,7 +77,7 @@ export function HomePage({ user, onSelectTable, onLogout, onStats }: HomePagePro
               <button
                 key={tab.op}
                 type="button"
-                class={`py-1.5 px-3.5 min-h-9 border-2 rounded-xl font-[Nunito] text-[0.9rem] font-bold text-center cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,.08)] transition-[background,color,border-color] duration-200 touch-manipulation ${active ? 'text-white border-transparent shadow-[0_3px_12px_rgba(0,0,0,.15)]' : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)]'}`}
+                class={`py-1.5 px-5 min-h-9 border-2 rounded-xl font-[Nunito] text-[0.9rem] font-bold text-center cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,.08)] transition-[background,color,border-color] duration-200 touch-manipulation ${active ? 'text-white border-transparent shadow-[0_3px_12px_rgba(0,0,0,.15)]' : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)]'}`}
                 style={active ? `background:${tab.gradient}` : ''}
                 onClick={() => handleTabChange(tab.op)}
               >
@@ -87,7 +87,7 @@ export function HomePage({ user, onSelectTable, onLogout, onStats }: HomePagePro
           })}
         </div>
 
-        <div class={`grid gap-6 w-full max-w-[900px] pt-6 op-content ${activeOp !== 'multiply' ? 'grid-cols-[repeat(auto-fill,minmax(200px,1fr))]' : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))]'}`}>
+        <div class={`grid gap-6 w-full max-w-[900px] op-content ${activeOp !== 'multiply' ? 'grid-cols-[repeat(auto-fill,minmax(200px,1fr))]' : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))]'}`}>
           {categories.map(cat => {
             const td: TableData = tablesData[cat.id] ?? { wins: 0, clear: [], retry: [] }
             const clearN = td.clear.length
@@ -116,7 +116,7 @@ export function HomePage({ user, onSelectTable, onLogout, onStats }: HomePagePro
                 <div class="bg-[var(--progress-bg)] rounded-lg h-2 overflow-hidden mb-2">
                   <div class="progress-bar-fill" style={`transform:scaleX(${pct / 100})`} />
                 </div>
-                <div class="flex justify-center gap-2 flex-wrap">
+                <div class="flex justify-center gap-2 flex-wrap mt-auto">
                   <span class="flex items-center gap-0.5 text-xs font-extrabold py-0.5 px-2.5 rounded-full bg-[var(--success-bg)] text-[var(--success)]">✅ {clearN}/10</span>
                   {retryN > 0 && <span class="flex items-center gap-0.5 text-xs font-extrabold py-0.5 px-2.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)]">🔄 {retryN}</span>}
                   {td.wins > 0 && <span class="flex items-center gap-0.5 text-xs font-extrabold py-0.5 px-2.5 rounded-full bg-[var(--info-bg)] text-[var(--info)]">🏆 {td.wins}×</span>}

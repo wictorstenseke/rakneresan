@@ -91,7 +91,9 @@
   --dot3: rgba(107, 203, 119, 0.12);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+}
 html { height: 100%; }
 body { font-family: 'Nunito', sans-serif; background: var(--bg); height: 100%; overflow: hidden; }
 #app { height: 100%; overflow-y: auto; }
@@ -170,7 +172,7 @@ img.login-emoji { width: 80px; height: 80px; margin-left: auto; margin-right: au
 .op-content { animation: opFadeIn .18s ease; }
 
 /* TABLE CARD */
-.table-card { background: var(--surface); border-radius: var(--radius); padding: 24px 16px 20px; text-align: center; box-shadow: 0 4px 16px rgba(0, 0, 0, .08); cursor: pointer; transition: transform .2s, box-shadow .2s; position: relative; overflow: hidden; border-top: 5px solid var(--tc); }
+.table-card { display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius); padding: 24px 16px 20px; text-align: center; box-shadow: 0 4px 16px rgba(0, 0, 0, .08); cursor: pointer; transition: transform .2s, box-shadow .2s; position: relative; overflow: hidden; border-top: 5px solid var(--tc); }
 .table-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 32px rgba(0, 0, 0, .14); }
 .table-num { font-family: 'Fredoka One', cursive; font-size: 3rem; line-height: 1; color: var(--tc); margin-bottom: 4px; }
 
