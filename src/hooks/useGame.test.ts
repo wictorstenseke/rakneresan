@@ -238,7 +238,7 @@ describe('useGame', () => {
         await result.current.startGame(3)
       })
 
-      await act(() => { result.current.peekCard() })
+      await act(() => { result.current.peekCard(false) })
 
       expect(result.current.gameState.peeked).toBe(true)
       expect(result.current.gameState.busy).toBe(true)
@@ -254,7 +254,7 @@ describe('useGame', () => {
 
       const card = result.current.gameState.current!
 
-      await act(() => { result.current.peekCard() })
+      await act(() => { result.current.peekCard(false) })
       await act(() => { vi.advanceTimersByTime(2500) })
 
       expect(result.current.gameState.retryPile).toContain(card.n)
@@ -275,7 +275,7 @@ describe('useGame', () => {
       expect(result.current.gameState.peeked).toBe(false)
 
       // peek should be ignored while busy — peeked stays false
-      await act(() => { result.current.peekCard() })
+      await act(() => { result.current.peekCard(false) })
       expect(result.current.gameState.peeked).toBe(false)
       unmount()
     })

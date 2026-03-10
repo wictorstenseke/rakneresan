@@ -38,7 +38,13 @@ export const firebaseStorageAdapter: StorageAdapter = {
         await updateDoc(snap.ref, { backfillDone: true })
       }
     }
-    return { tables: data.tables ?? {}, completionLog: data.completionLog ?? [] }
+    return {
+      tables: data.tables ?? {},
+      completionLog: data.completionLog ?? [],
+      credits: data.credits ?? 0,
+      peekSavers: data.peekSavers ?? 0,
+      purchaseCounts: data.purchaseCounts ?? {},
+    }
   },
 
   async saveTableData(_: string, table: number, data: TableData): Promise<void> {
@@ -54,7 +60,7 @@ export const firebaseStorageAdapter: StorageAdapter = {
     const db = await getFirebaseDb()
     const { doc, setDoc } = await import('firebase/firestore')
     const cred = await createUserWithEmailAndPassword(auth, fakeEmail(username), pinToPassword(pin))
-    await setDoc(doc(db, 'users', cred.user.uid), { tables: {} })
+    await setDoc(doc(db, 'users', cred.user.uid), { tables: {}, credits: 0, peekSavers: 0, purchaseCounts: {} })
   },
 
   async logCompletion(_: string, table: number): Promise<void> {
@@ -91,5 +97,48 @@ export const firebaseStorageAdapter: StorageAdapter = {
       }
       throw err
     }
+  },
+
+  async addCredits(_: string, amount: number): Promise<void> {
+    const uid = await requireUid()
+    const db = await getFirebaseDb()
+    const { doc, increment, updateDoc } = await import('firebase/firestore')
+    await updateDoc(doc(db, 'users', uid), { credits: increment(amount) })
+  },
+
+  async addPeekSavers(_: string, amount: number): Promise<void> {
+    const uid = await requireUid()
+    const db = await getFirebaseDb()
+    const { doc, increment, updateDoc } = await import('firebase/firestore')
+    await updateDoc(doc(db, 'users', uid), { peekSavers: increment(amount) })
+  },
+
+  async consumePeekSaver(_: string): Promise<boolean> {
+    const uid = await requireUid()
+    const db = await getFirebaseDb()
+    const { doc, getDoc, increment, updateDoc } = await import('firebase/firestore')
+    const ref = doc(db, 'users', uid)
+    const snap = await getDoc(ref)
+    if (!snap.exists()) return false
+    const current = snap.data().peekSavers ?? 0
+    if (current <= 0) return false
+    await updateDoc(ref, { peekSavers: increment(-1) })
+    return true
+  },
+
+  async spendCreditsAndTrackPurchase(_: string, cost: number, itemId: string): Promise<boolean> {
+    const uid = await requireUid()
+    const db = await getFirebaseDb()
+    const { doc, getDoc, increment, updateDoc } = await import('firebase/firestore')
+    const ref = doc(db, 'users', uid)
+    const snap = await getDoc(ref)
+    if (!snap.exists()) return false
+    const current = snap.data().credits ?? 0
+    if (current < cost) return false
+    await updateDoc(ref, {
+      credits: increment(-cost),
+      [`purchaseCounts.${itemId}`]: increment(1),
+    })
+    return true
   },
 }

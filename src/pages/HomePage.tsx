@@ -11,6 +11,7 @@ interface HomePageProps {
   onSelectTable: (table: number) => void
   onLogout: () => void
   onStats: () => void
+  onShop: () => void
 }
 
 const TABS: { op: Operation; label: string; gradient: string }[] = [
@@ -27,15 +28,19 @@ function getSavedHomeOperation(user: string): Operation {
   return 'multiply'
 }
 
-export function HomePage({ user, onSelectTable, onLogout, onStats }: HomePageProps) {
+export function HomePage({ user, onSelectTable, onLogout, onStats, onShop }: HomePageProps) {
   const [tablesData, setTablesData] = useState<Record<number, TableData>>({})
   const [activeOp, setActiveOp] = useState<Operation>(() => getSavedHomeOperation(user))
+  const [credits, setCredits] = useState(0)
+  const [peekSavers, setPeekSavers] = useState(0)
 
   useEffect(() => {
     const load = async () => {
       const userData = await storage.getUser(user)
       if (userData) {
         setTablesData(userData.tables)
+        setCredits(userData.credits ?? 0)
+        setPeekSavers(userData.peekSavers ?? 0)
       }
     }
     void load()
@@ -61,6 +66,9 @@ export function HomePage({ user, onSelectTable, onLogout, onStats }: HomePagePro
         <h1 class="text-center">🎯 Räkneresan</h1>
         <div class="top-bar-actions flex flex-wrap justify-center gap-2.5 md:flex-nowrap md:justify-end">
           <ThemeToggle />
+          <span class="balance-chip balance-credits" title="Dina poäng">💰 {credits}</span>
+          <span class="balance-chip balance-savers" title="Dina Peek Savers">🛡️ {peekSavers}</span>
+          <button class="stats-chip" onClick={onShop}>🛍️ Butiken</button>
           <button class="stats-chip" onClick={onStats}>📊 Statistik</button>
           <button type="button" class="user-chip" onClick={onLogout}>
             🚪 Logga ut
@@ -129,4 +137,3 @@ export function HomePage({ user, onSelectTable, onLogout, onStats }: HomePagePro
     </div>
   )
 }
-

@@ -67,7 +67,7 @@ describe('storage.firebase', () => {
 
       await firebaseStorageAdapter.createUser('alice', '1234')
 
-      expect(mockSetDoc).toHaveBeenCalledWith('doc-ref', { tables: {} })
+      expect(mockSetDoc).toHaveBeenCalledWith('doc-ref', { tables: {}, credits: 0, peekSavers: 0, purchaseCounts: {} })
     })
   })
 
@@ -146,6 +146,9 @@ describe('storage.firebase', () => {
       expect(result).toEqual({
         tables,
         completionLog: [{ table: 3, timestamp: 1000 }],
+        credits: 0,
+        peekSavers: 0,
+        purchaseCounts: {},
       })
     })
 

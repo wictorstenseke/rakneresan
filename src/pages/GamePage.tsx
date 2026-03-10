@@ -5,6 +5,7 @@ import { useGame } from '../hooks/useGame'
 import { NumericKeypad } from '../components/NumericKeypad'
 import { HintModal } from '../components/HintModal'
 import type { RoundResult } from '../hooks/useGame'
+import { storage } from '../lib/storageContext'
 
 interface GamePageProps {
   categoryId: number
@@ -27,10 +28,11 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
   const [showHint, setShowHint] = useState(false)
   const startedRef = useRef(false)
   const showAnswerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [peekSavers, setPeekSavers] = useState(0)
 
   const catDef = getCategoryDef(categoryId)
 
-  // Start game on mount
+  // Start game on mount and load saver balance
   useEffect(() => {
     if (!startedRef.current) {
       startedRef.current = true
@@ -43,6 +45,12 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
       void startGame(categoryId)
     }
   }, [categoryId, catDef, startGame])
+
+  useEffect(() => {
+    storage.getUser(user).then(userData => {
+      if (userData) setPeekSavers(userData.peekSavers ?? 0)
+    }).catch(() => {})
+  }, [user])
 
   // Handle round completion
   useEffect(() => {
@@ -138,8 +146,22 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
   const handlePeek = useCallback(() => {
     if (flipped) return
     setFlipped(true)
-    peekCard()
-  }, [flipped, peekCard])
+
+    if (peekSavers > 0) {
+      // Optimistically decrement local count
+      setPeekSavers(prev => prev - 1)
+      // Fire-and-forget saver consumption
+      storage.consumePeekSaver(user).catch(() => {
+        // Restore on failure
+        setPeekSavers(prev => prev + 1)
+      })
+      peekCard(true)
+      floatFeedback('🛡️ Saver använd!', true)
+    } else {
+      peekCard(false)
+      floatFeedback('👀 Till öva igen', false)
+    }
+  }, [flipped, peekSavers, user, peekCard, floatFeedback])
 
   const handleHint = useCallback(() => {
     setShowHint(true)
@@ -250,6 +272,7 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
               onPeek={handlePeek}
               onHint={handleHint}
               flipped={flipped}
+              peekSavers={peekSavers}
             />
           </div>
         </div>

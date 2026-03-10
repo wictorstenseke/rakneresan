@@ -13,6 +13,10 @@ export interface CompletionEntry {
 export interface UserData {
   tables: Record<number, TableData>
   completionLog?: CompletionEntry[]
+  credits?: number
+  peekSavers?: number
+  /** Maps item key (video ID or "peekSaver") to number of times purchased. */
+  purchaseCounts?: Record<string, number>
 }
 
 export interface StorageAdapter {
@@ -23,4 +27,15 @@ export interface StorageAdapter {
   logCompletion(username: string, table: number): Promise<void>
   /** Save table reset + log completion in a single write (used on allClear). */
   saveCompletedRound(username: string, table: number, data: TableData): Promise<void>
+  /** Increment credits by amount. */
+  addCredits(username: string, amount: number): Promise<void>
+  /** Increment peekSavers by amount. */
+  addPeekSavers(username: string, amount: number): Promise<void>
+  /** Consume one peek saver. Returns false if balance was already 0. */
+  consumePeekSaver(username: string): Promise<boolean>
+  /**
+   * Atomically spend `cost` credits and record a purchase of `itemId`.
+   * Returns false if balance was insufficient.
+   */
+  spendCreditsAndTrackPurchase(username: string, cost: number, itemId: string): Promise<boolean>
 }

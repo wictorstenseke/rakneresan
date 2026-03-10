@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'preact/hooks'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import type { RoundResult } from '../hooks/useGame'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { getCategoryDef } from '../lib/constants'
 import { buildEmbedUrl, pickRandomVideoId } from '../lib/youtube'
+import { storage } from '../lib/storageContext'
 
 declare global {
   interface Window {
@@ -22,6 +23,7 @@ declare global {
 
 interface CompletePageProps {
   result: RoundResult
+  user: string
   onContinue: () => void
   onBack: () => void
 }
@@ -92,7 +94,7 @@ function loadYouTubeApi(onReady: () => void) {
   }
 }
 
-export function CompletePage({ result, onContinue, onBack }: CompletePageProps) {
+export function CompletePage({ result, user, onContinue, onBack }: CompletePageProps) {
   const { clearCount, retryCount, allClear, categoryId, wins } = result
   const categoryLabel = getCategoryDef(categoryId)?.label ?? `${categoryId}:ans tabell`
   const confettiRef = useRef<HTMLDivElement>(null)
@@ -102,6 +104,10 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
   const [videoId] = useState(() => pickRandomVideoId())
   const [videoEnded, setVideoEnded] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
+
+  // Reward choice state
+  const [rewardChosen, setRewardChosen] = useState(false)
+  const [rewardFeedback, setRewardFeedback] = useState<string | null>(null)
 
   useEffect(() => {
     if (confettiRef.current && (allClear || retryCount === 0)) {
@@ -127,6 +133,22 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
       player?.destroy()
     }
   }, [showVideo])
+
+  const handleChooseCredits = useCallback(() => {
+    if (rewardChosen) return
+    setRewardChosen(true)
+    storage.addCredits(user, 1)
+      .then(() => setRewardFeedback('💰 +1 poäng tillagd!'))
+      .catch(() => setRewardFeedback('💰 +1 poäng!'))
+  }, [rewardChosen, user])
+
+  const handleChoosePeekSaver = useCallback(() => {
+    if (rewardChosen) return
+    setRewardChosen(true)
+    storage.addPeekSavers(user, 1)
+      .then(() => setRewardFeedback('🛡️ +1 Peek Saver tillagd!'))
+      .catch(() => setRewardFeedback('🛡️ +1 Peek Saver!'))
+  }, [rewardChosen, user])
 
   if (showVideo) {
     return (
@@ -181,7 +203,7 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
           </div>
         )}
 
-        <div class="flex justify-center gap-5 mb-8">
+        <div class="flex justify-center gap-5 mb-6">
           <div class="text-center text-(--success)">
             <div class="cstat-num">{clearCount}</div>
             <div class="cstat-label">Klara</div>
@@ -192,7 +214,34 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
           </div>
         </div>
 
-        <div class="flex flex-col gap-2.5">
+        {/* Reward choice */}
+        <div class="reward-choice-section">
+          {rewardFeedback ? (
+            <div class="reward-feedback">{rewardFeedback}</div>
+          ) : (
+            <>
+              <p class="reward-choice-label">Välj din belöning:</p>
+              <div class="reward-choice-btns">
+                <button
+                  class="btn-reward-choice btn-reward-credits"
+                  onClick={handleChooseCredits}
+                >
+                  <span class="reward-choice-icon">💰</span>
+                  <span class="reward-choice-text">+1 Poäng</span>
+                </button>
+                <button
+                  class="btn-reward-choice btn-reward-saver"
+                  onClick={handleChoosePeekSaver}
+                >
+                  <span class="reward-choice-icon">🛡️</span>
+                  <span class="reward-choice-text">+1 Peek Saver</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div class="flex flex-col gap-2.5 mt-4">
           <button class="btn-primary" onClick={onContinue}>
             {allClear ? 'Spela igen! 🎮' : 'Fortsätt öva! 📚'}
           </button>

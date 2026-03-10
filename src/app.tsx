@@ -8,8 +8,9 @@ import type { RoundResult } from './hooks/useGame'
 const GamePage = lazy(() => import('./pages/GamePage'))
 const CompletePage = lazy(() => import('./pages/CompletePage'))
 const StatsPage = lazy(() => import('./pages/StatsPage'))
+const ShopPage = lazy(() => import('./pages/ShopPage'))
 
-type Screen = 'login' | 'home' | 'game' | 'complete' | 'stats'
+type Screen = 'login' | 'home' | 'game' | 'complete' | 'stats' | 'shop'
 
 function ScreenFallback() {
   return (
@@ -67,6 +68,10 @@ export function App() {
     setScreen('stats')
   }, [])
 
+  const handleShop = useCallback(() => {
+    setScreen('shop')
+  }, [])
+
   if (!authReady) {
     return <ScreenFallback />
   }
@@ -81,6 +86,7 @@ export function App() {
           onSelectTable={handleSelectTable}
           onLogout={handleLogout}
           onStats={handleStats}
+          onShop={handleShop}
         />
       )
     case 'game':
@@ -100,6 +106,7 @@ export function App() {
         <Suspense fallback={<ScreenFallback />}>
           <CompletePage
             result={completeResult}
+            user={currentUser!}
             onContinue={handleContinue}
             onBack={goHome}
           />
@@ -109,6 +116,15 @@ export function App() {
       return (
         <Suspense fallback={<ScreenFallback />}>
           <StatsPage
+            user={currentUser!}
+            onBack={goHome}
+          />
+        </Suspense>
+      )
+    case 'shop':
+      return (
+        <Suspense fallback={<ScreenFallback />}>
+          <ShopPage
             user={currentUser!}
             onBack={goHome}
           />

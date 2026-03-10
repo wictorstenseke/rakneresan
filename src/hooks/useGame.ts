@@ -20,6 +20,7 @@ interface GameState {
   answer: number
   backLabel: string
   peeked: boolean
+  peekUsedSaver: boolean
   busy: boolean
 }
 
@@ -45,6 +46,7 @@ const initialState: GameState = {
   answer: 0,
   backLabel: '',
   peeked: false,
+  peekUsedSaver: false,
   busy: false,
 }
 
@@ -69,7 +71,7 @@ function nextCard(state: GameState): GameState {
   }
   const current = pickRandom(state.deck)
   const display = computeCardDisplay(state, current)
-  return { ...state, current, ...display, peeked: false, busy: false }
+  return { ...state, current, ...display, peeked: false, peekUsedSaver: false, busy: false }
 }
 
 export function useGame(username: string) {
@@ -145,6 +147,7 @@ export function useGame(username: string) {
       answer: 0,
       backLabel: '',
       peeked: false,
+      peekUsedSaver: false,
       busy: false,
     }
     const display = computeCardDisplay(partialState, current)
@@ -199,7 +202,7 @@ export function useGame(username: string) {
     const newClear = [...gs.clearPile]
     const newRetry = [...gs.retryPile]
 
-    if (correct && !gs.peeked) {
+    if ((correct && !gs.peeked) || gs.peekUsedSaver) {
       newClear.push(gs.current.n)
     } else {
       newRetry.push(gs.current.n)
@@ -249,10 +252,10 @@ export function useGame(username: string) {
     }
   }, [moveCard, updateState])
 
-  const peekCard = useCallback(() => {
+  const peekCard = useCallback((useSaver: boolean) => {
     const gs = gsRef.current
     if (gs.busy) return
-    updateState(prev => ({ ...prev, peeked: true, busy: true }))
+    updateState(prev => ({ ...prev, peeked: true, peekUsedSaver: useSaver, busy: true }))
     setTimeout(() => {
       moveCard(false)
     }, 2400)

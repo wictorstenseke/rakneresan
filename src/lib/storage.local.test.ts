@@ -46,7 +46,7 @@ describe('getUser', () => {
   it('returns empty tables after creation', async () => {
     await localStorageAdapter.createUser('bob', '0000')
     const user = await localStorageAdapter.getUser('bob')
-    expect(user).toEqual({ tables: {} })
+    expect(user).toEqual({ tables: {}, credits: 0, peekSavers: 0, purchaseCounts: {} })
   })
 })
 
