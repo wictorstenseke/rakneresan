@@ -47,4 +47,8 @@ export const localStorageAdapter: StorageAdapter = {
   async logCompletion(_username: string, _table: number): Promise<void> {
     // No-op for local adapter (inactive)
   },
+
+  async saveCompletedRound(username: string, table: number, data: TableData): Promise<void> {
+    await this.saveTableData(username, table, data)
+  },
 }

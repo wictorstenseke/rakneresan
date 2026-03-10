@@ -1,13 +1,23 @@
 import { useState, useCallback, useEffect } from 'preact/hooks'
+import { lazy, Suspense } from 'preact/compat'
 import { useAuth } from './hooks/useAuth'
 import { LoginPage } from './pages/LoginPage'
 import { HomePage } from './pages/HomePage'
-import { GamePage } from './pages/GamePage'
-import { CompletePage } from './pages/CompletePage'
-import { StatsPage } from './pages/StatsPage'
 import type { RoundResult } from './hooks/useGame'
 
+const GamePage = lazy(() => import('./pages/GamePage'))
+const CompletePage = lazy(() => import('./pages/CompletePage'))
+const StatsPage = lazy(() => import('./pages/StatsPage'))
+
 type Screen = 'login' | 'home' | 'game' | 'complete' | 'stats'
+
+function ScreenFallback() {
+  return (
+    <div class="screen active auth-loading">
+      <div class="font-[Nunito] text-[1.1rem] text-[var(--text-muted)]">Laddar...</div>
+    </div>
+  )
+}
 
 export function App() {
   const { currentUser, authReady, login, logout } = useAuth()
@@ -29,7 +39,7 @@ export function App() {
   }, [])
 
   const handleLogout = useCallback(() => {
-    logout()
+    void logout()
     setScreen('login')
   }, [logout])
 
@@ -44,7 +54,7 @@ export function App() {
     setScreen('complete')
   }, [])
 
-  const handleGameBack = useCallback(() => {
+  const goHome = useCallback(() => {
     setScreen('home')
   }, [])
 
@@ -53,24 +63,12 @@ export function App() {
     setScreen('game')
   }, [])
 
-  const handleCompleteBack = useCallback(() => {
-    setScreen('home')
-  }, [])
-
   const handleStats = useCallback(() => {
     setScreen('stats')
   }, [])
 
-  const handleStatsBack = useCallback(() => {
-    setScreen('home')
-  }, [])
-
   if (!authReady) {
-    return (
-      <div class="screen active auth-loading">
-        <div class="auth-loading-text">Laddar...</div>
-      </div>
-    )
+    return <ScreenFallback />
   }
 
   switch (effectiveScreen) {
@@ -87,28 +85,34 @@ export function App() {
       )
     case 'game':
       return (
-        <GamePage
-          key={gameKey}
-          categoryId={selectedTable}
-          user={currentUser!}
-          onBack={handleGameBack}
-          onComplete={handleGameComplete}
-        />
+        <Suspense fallback={<ScreenFallback />}>
+          <GamePage
+            key={gameKey}
+            categoryId={selectedTable}
+            user={currentUser!}
+            onBack={goHome}
+            onComplete={handleGameComplete}
+          />
+        </Suspense>
       )
     case 'complete':
       return completeResult ? (
-        <CompletePage
-          result={completeResult}
-          onContinue={handleContinue}
-          onBack={handleCompleteBack}
-        />
+        <Suspense fallback={<ScreenFallback />}>
+          <CompletePage
+            result={completeResult}
+            onContinue={handleContinue}
+            onBack={goHome}
+          />
+        </Suspense>
       ) : null
     case 'stats':
       return (
-        <StatsPage
-          user={currentUser!}
-          onBack={handleStatsBack}
-        />
+        <Suspense fallback={<ScreenFallback />}>
+          <StatsPage
+            user={currentUser!}
+            onBack={goHome}
+          />
+        </Suspense>
       )
     default:
       return null

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'preact/hooks'
-import { getCategoryDef, TEN_FRIENDS_CATEGORY_ID } from '../lib/constants'
+import { ThemeToggle } from '../components/ThemeToggle'
+import { getCategoryDef } from '../lib/constants'
 import { useGame } from '../hooks/useGame'
 import { NumericKeypad } from '../components/NumericKeypad'
 import { HintModal } from '../components/HintModal'
@@ -69,7 +70,7 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
         showAnswerTimerRef.current = null
       }
     }
-  }, [gameState])
+  }, [gameState.current, gameState.deck.length])
 
   const handleBack = useCallback(() => {
     void saveProgress().then(() => onBack())
@@ -170,7 +171,7 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [flipped, showAnswerAfterWrong, handleSubmit, handleShowAnswerDismiss])
 
-  const { deck, clearPile, retryPile, current, operation } = gameState
+  const { deck, clearPile, retryPile, current, operation, question, answer, backLabel } = gameState
   const done = clearPile.length + retryPile.length
   const total = deck.length + done
   const tableColor = catDef?.color ?? '#4D96FF'
@@ -178,14 +179,6 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
   if (!current) {
     return <div class="screen active game-screen" />
   }
-
-  const sym = operation === 'multiply' ? '×' : operation === 'add' ? '+' : '−'
-  const a = operation === 'multiply' ? gameState.table : (current.a ?? 0)
-  const b = operation === 'multiply' ? current.n : (current.b ?? 0)
-  const isTenFriends = categoryId === TEN_FRIENDS_CATEGORY_ID && operation === 'add'
-  const question = isTenFriends ? `${a} + ?` : `${a} ${sym} ${b}`
-  const answer = isTenFriends ? b : operation === 'multiply' ? a * b : operation === 'add' ? a + b : a - b
-  const backLabel = isTenFriends ? `${a} + ${b} = 10` : `${question} = ${answer}`
 
   const answerDisplayClass = `answer-display${answerState !== 'idle' ? ` ${answerState}` : ''}`
 
@@ -199,15 +192,16 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
         tableColor={tableColor}
         equations={Array.from(gameState.equations.values())}
       />
-      <div class="game-header flex flex-wrap gap-3 md:gap-4">
+      <div class="game-header w-full max-w-[480px] flex items-center mb-5 flex-wrap gap-3 md:gap-4 max-sm:mb-2.5">
         <button type="button" class="back-chip" onClick={handleBack} aria-label="Tillbaka">🔙</button>
-        <div class="game-title">{catDef?.label ?? `Kategori ${categoryId}`}</div>
-        <div class="progress-text">{done}/{total}</div>
+        <div class="game-title font-[Fredoka_One] text-2xl max-sm:text-xl text-[var(--text)] flex-1">{catDef?.label ?? `Kategori ${categoryId}`}</div>
+        <div class="font-extrabold text-[.85rem] text-[var(--text-muted)]">{done}/{total}</div>
+        <ThemeToggle />
       </div>
 
-      <div class="game-content">
-        <div class="game-layout">
-          <div class="game-card-col">
+      <div class="game-content flex-1 flex items-center justify-center w-full pb-4 max-sm:pb-2">
+        <div class="game-layout flex flex-col items-center gap-4 w-full max-w-[480px] max-sm:gap-2.5">
+          <div class="flex flex-col items-center w-full">
             <div class="piles-bar">
               <div class="pile-box deck-pile">
                 <div class="pile-count">{deck.length}</div>
@@ -246,7 +240,7 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
             </div>
           </div>
 
-          <div class="game-keypad-col">
+          <div class="game-keypad-col flex flex-col items-center gap-2.5 w-full max-w-xs">
             <NumericKeypad
               value={inputValue}
               onChange={setInputValue}
@@ -263,3 +257,5 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
     </div>
   )
 }
+
+export default GamePage

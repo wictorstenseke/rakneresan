@@ -11,6 +11,7 @@ const {
     getUser: vi.fn(),
     saveTableData: vi.fn(),
     logCompletion: vi.fn(),
+    saveCompletedRound: vi.fn(),
   },
 }))
 
@@ -19,8 +20,9 @@ vi.mock('firebase/auth', () => ({
   signOut: (...args: unknown[]) => mockSignOut(...args),
 }))
 
+const mockAuth = {}
 vi.mock('../lib/firebase', () => ({
-  auth: {},
+  getFirebaseAuth: () => Promise.resolve(mockAuth),
 }))
 
 vi.mock('../lib/savedUsers', () => ({
@@ -94,6 +96,8 @@ describe('useAuth', () => {
 
     it('sets authReady true and currentUser after onAuthStateChanged fires', async () => {
       const { result, unmount } = await renderHookCustom(() => useAuth())
+      // Wait for async Firebase init to complete
+      await act(async () => { await new Promise(r => setTimeout(r, 0)) })
       await act(() => { authStateCallback?.({ email: 'alice@matte.kort' }) })
       expect(result.current.authReady).toBe(true)
       expect(result.current.currentUser).toBe('alice')
@@ -102,6 +106,7 @@ describe('useAuth', () => {
 
     it('sets currentUser null when no user is signed in', async () => {
       const { result, unmount } = await renderHookCustom(() => useAuth())
+      await act(async () => { await new Promise(r => setTimeout(r, 0)) })
       await act(() => { authStateCallback?.(null) })
       expect(result.current.authReady).toBe(true)
       expect(result.current.currentUser).toBeNull()
@@ -236,7 +241,7 @@ describe('useAuth', () => {
       expect(result.current.currentUser).toBe('alice')
 
       // Log out
-      await act(() => { result.current.logout() })
+      await act(async () => { await result.current.logout() })
       expect(mockSignOut).toHaveBeenCalled()
       expect(result.current.currentUser).toBeNull()
       unmount()

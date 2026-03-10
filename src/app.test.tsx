@@ -11,6 +11,7 @@ const { mockUseAuth, mockStorage } = vi.hoisted(() => {
       createUser: vi.fn().mockResolvedValue(undefined),
       validatePin: vi.fn().mockResolvedValue(true),
       logCompletion: vi.fn().mockResolvedValue(undefined),
+      saveCompletedRound: vi.fn().mockResolvedValue(undefined),
     },
   }
 })
@@ -22,6 +23,22 @@ vi.mock('./hooks/useAuth', () => ({
 vi.mock('./lib/storageContext', () => ({
   storage: mockStorage,
 }))
+
+beforeEach(() => {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  })
+})
 
 describe('App', () => {
   beforeEach(() => {

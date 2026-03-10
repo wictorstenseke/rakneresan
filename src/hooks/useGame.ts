@@ -5,6 +5,7 @@ import { buildDeck, isCorrectAnswer, isCorrectTenFriendsAnswer, computeEndRound 
 import type { GameCard } from '../lib/game-logic'
 import { getCategoryDef, TEN_FRIENDS_CATEGORY_ID } from '../lib/constants'
 import type { Operation } from '../lib/constants'
+import { opSymbol } from '../lib/hint-utils'
 
 interface GameState {
   table: number
@@ -15,6 +16,9 @@ interface GameState {
   clearPile: number[]
   retryPile: number[]
   current: GameCard | null
+  question: string
+  answer: number
+  backLabel: string
   peeked: boolean
   busy: boolean
 }
@@ -37,8 +41,22 @@ const initialState: GameState = {
   clearPile: [],
   retryPile: [],
   current: null,
+  question: '',
+  answer: 0,
+  backLabel: '',
   peeked: false,
   busy: false,
+}
+
+function computeCardDisplay(state: GameState, card: GameCard): { question: string; answer: number; backLabel: string } {
+  const a = state.operation === 'multiply' ? state.table : (card.a ?? 0)
+  const b = state.operation === 'multiply' ? card.n : (card.b ?? 0)
+  const isTenFriends = state.categoryId === TEN_FRIENDS_CATEGORY_ID && state.operation === 'add'
+  const sym = opSymbol(state.operation)
+  const question = isTenFriends ? `${a} + ?` : `${a} ${sym} ${b}`
+  const answer = isTenFriends ? b : state.operation === 'multiply' ? a * b : state.operation === 'add' ? a + b : a - b
+  const backLabel = isTenFriends ? `${a} + ${b} = 10` : `${question} = ${answer}`
+  return { question, answer, backLabel }
 }
 
 function pickRandom(deck: GameCard[]): GameCard {
@@ -50,7 +68,8 @@ function nextCard(state: GameState): GameState {
     return state
   }
   const current = pickRandom(state.deck)
-  return { ...state, current, peeked: false, busy: false }
+  const display = computeCardDisplay(state, current)
+  return { ...state, current, ...display, peeked: false, busy: false }
 }
 
 export function useGame(username: string) {
@@ -113,7 +132,7 @@ export function useGame(username: string) {
     savedTdRef.current = td
 
     const current = pickRandom(deck)
-    const newState: GameState = {
+    const partialState: GameState = {
       table,
       categoryId,
       operation,
@@ -122,9 +141,14 @@ export function useGame(username: string) {
       clearPile: [],
       retryPile: [],
       current,
+      question: '',
+      answer: 0,
+      backLabel: '',
       peeked: false,
       busy: false,
     }
+    const display = computeCardDisplay(partialState, current)
+    const newState: GameState = { ...partialState, ...display }
     gsRef.current = newState
     setGameState(newState)
   }, [username])
@@ -145,17 +169,20 @@ export function useGame(username: string) {
     })
 
     // Spara i bakgrunden – blockerar inte UI
-    void (allClear
-      ? Promise.all([
-          storage.saveTableData(username, table, { wins, clear: [], retry: [] }),
-          storage.logCompletion(username, table),
-        ])
-      : storage.saveTableData(username, table, { wins, clear: newClear, retry: newRetry }))
+    const savePromise = allClear
+      ? storage.saveCompletedRound(username, table, { wins, clear: [], retry: [] })
+      : storage.saveTableData(username, table, { wins, clear: newClear, retry: newRetry })
+    savePromise.catch(err => console.error('Failed to save round result:', err))
   }, [username])
 
+  const bgSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const backgroundSave = useCallback((clearPile: number[], retryPile: number[]) => {
-    const { newClear, newRetry, wins } = computeEndRound(savedTdRef.current, clearPile, retryPile)
-    void storage.saveTableData(username, gsRef.current.table, { wins, clear: newClear, retry: newRetry })
+    if (bgSaveTimerRef.current) clearTimeout(bgSaveTimerRef.current)
+    bgSaveTimerRef.current = setTimeout(() => {
+      const { newClear, newRetry, wins } = computeEndRound(savedTdRef.current, clearPile, retryPile)
+      storage.saveTableData(username, gsRef.current.table, { wins, clear: newClear, retry: newRetry })
+        .catch(err => console.error('Background save failed:', err))
+    }, 2000)
   }, [username])
 
   const moveCard = useCallback((correct: boolean): void => {
@@ -232,20 +259,12 @@ export function useGame(username: string) {
     moveCard(false)
   }, [moveCard])
 
-  const continueGame = useCallback(() => {
-    void startGame(gsRef.current.categoryId)
-  }, [startGame])
-
   /** Save progress mid-round so exiting the game screen doesn't lose answered cards. */
   const saveProgress = useCallback(async () => {
     const gs = gsRef.current
     if (gs.clearPile.length === 0 && gs.retryPile.length === 0) return
 
-    const userData = await storage.getUser(username)
-    const tables = userData?.tables ?? {}
-    const td: TableData = tables[gs.table] ?? { wins: 0, clear: [], retry: [] }
-
-    const { newClear, newRetry, wins } = computeEndRound(td, gs.clearPile, gs.retryPile)
+    const { newClear, newRetry, wins } = computeEndRound(savedTdRef.current, gs.clearPile, gs.retryPile)
     await storage.saveTableData(username, gs.table, { wins, clear: newClear, retry: newRetry })
   }, [username])
 
@@ -256,7 +275,6 @@ export function useGame(username: string) {
     submitAnswer,
     peekCard,
     moveToRetry,
-    continueGame,
     saveProgress,
   }
 }

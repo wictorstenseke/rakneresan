@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'preact/hooks'
-import { signOut, onAuthStateChanged } from 'firebase/auth'
-import { auth } from '../lib/firebase'
+import { getFirebaseAuth } from '../lib/firebase'
 import { storage } from '../lib/storageContext'
 import { emailToUsername } from '../lib/constants'
 import { saveUser } from '../lib/savedUsers'
@@ -14,11 +13,24 @@ export function useAuth() {
   const [state, setState] = useState<AuthState>({ currentUser: null, authReady: false })
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      const username = user ? emailToUsername(user.email) : null
-      setState({ currentUser: username, authReady: true })
-    })
-    return () => unsub()
+    let unsub: (() => void) | null = null
+    let cancelled = false
+
+    async function init() {
+      const auth = await getFirebaseAuth()
+      const { onAuthStateChanged } = await import('firebase/auth')
+      if (cancelled) return
+      unsub = onAuthStateChanged(auth, (user) => {
+        const username = user ? emailToUsername(user.email) : null
+        setState({ currentUser: username, authReady: true })
+      })
+    }
+
+    void init()
+    return () => {
+      cancelled = true
+      unsub?.()
+    }
   }, [])
 
   const login = useCallback(async (username: string, pin: string): Promise<{ success: boolean; error?: string }> => {
@@ -54,8 +66,10 @@ export function useAuth() {
     return { success: true }
   }, [])
 
-  const logout = useCallback(() => {
-    void signOut(auth)
+  const logout = useCallback(async () => {
+    const auth = await getFirebaseAuth()
+    const { signOut } = await import('firebase/auth')
+    await signOut(auth)
     setState(s => ({ ...s, currentUser: null }))
   }, [])
 

@@ -7,6 +7,7 @@ const { mockStorage } = vi.hoisted(() => ({
     getUser: vi.fn(),
     saveTableData: vi.fn(),
     logCompletion: vi.fn(),
+    saveCompletedRound: vi.fn(),
   },
 }))
 
@@ -55,6 +56,7 @@ describe('useGame', () => {
     mockStorage.getUser.mockResolvedValue({ tables: {}, completionLog: [] })
     mockStorage.saveTableData.mockResolvedValue(undefined)
     mockStorage.logCompletion.mockResolvedValue(undefined)
+    mockStorage.saveCompletedRound.mockResolvedValue(undefined)
   })
 
   afterEach(() => {
@@ -344,10 +346,8 @@ describe('useGame', () => {
       // Advance past the moveCard timeout (900ms for last card)
       await act(() => { vi.advanceTimersByTime(1000) })
 
-      // Should have called saveTableData for the final result (fire-and-forget)
-      expect(mockStorage.saveTableData).toHaveBeenCalled()
-      // Should have logged completion (allClear)
-      expect(mockStorage.logCompletion).toHaveBeenCalledWith('testuser', 3)
+      // Should have saved completed round (combined save + log in single write)
+      expect(mockStorage.saveCompletedRound).toHaveBeenCalledWith('testuser', 3, expect.objectContaining({ wins: 1, clear: [], retry: [] }))
       unmount()
     })
   })

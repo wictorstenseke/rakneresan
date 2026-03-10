@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'preact/hooks'
+import { useState, useEffect, useMemo } from 'preact/hooks'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { COLORS, EMOJIS, ALL_CATEGORIES, getCategoryDef } from '../lib/constants'
 import { storage } from '../lib/storageContext'
 import type { UserData, CompletionEntry } from '../lib/storage'
@@ -85,23 +86,53 @@ function computeStats(userData: UserData): Stats {
   return { mostPlayedTable, hardestNumber, easiestNumber, totalWins, totalClears, totalRetries, tableCompletions }
 }
 
+function HighlightRow({ icon, color, title, value }: { icon: string; color: string; title: string; value: string | number }) {
+  return (
+    <div class="highlight-row" style={`--tc:${color}`}>
+      <span class="highlight-icon" style={icon === '🏆' || icon.length > 2 ? `color:${color}` : undefined}>{icon}</span>
+      <div>
+        <div class="highlight-title">{title}</div>
+        <div class="highlight-value">{value}</div>
+      </div>
+    </div>
+  )
+}
+
 export function StatsPage({ user, onBack }: StatsPageProps) {
   const [stats, setStats] = useState<Stats | null>(null)
   const [completionLog, setCompletionLog] = useState<CompletionEntry[]>([])
   const [showHistory, setShowHistory] = useState(false)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     const load = async () => {
-      const userData = await storage.getUser(user)
-      if (userData) {
-        setStats(computeStats(userData))
-        setCompletionLog(userData.completionLog ?? [])
-      } else {
-        setStats({ mostPlayedTable: null, hardestNumber: null, easiestNumber: null, totalWins: 0, totalClears: 0, totalRetries: 0, tableCompletions: {} })
+      try {
+        const userData = await storage.getUser(user)
+        if (userData) {
+          setStats(computeStats(userData))
+          setCompletionLog(userData.completionLog ?? [])
+        } else {
+          setStats({ mostPlayedTable: null, hardestNumber: null, easiestNumber: null, totalWins: 0, totalClears: 0, totalRetries: 0, tableCompletions: {} })
+        }
+      } catch (err) {
+        console.error('Failed to load stats:', err)
+        setLoadError(true)
       }
     }
     void load()
   }, [user])
+
+  if (loadError) {
+    return (
+      <div class="screen active stats-screen">
+        <div class="w-full max-w-[900px] flex items-center mb-4 flex-wrap gap-3 md:gap-4">
+          <button type="button" class="back-chip" onClick={onBack} aria-label="Tillbaka">🔙</button>
+          <h1 class="font-[Fredoka_One] text-2xl text-[var(--text-secondary)] flex-1">Statistik</h1>
+        </div>
+        <p class="stats-empty">Kunde inte ladda statistiken. Försök igen!</p>
+      </div>
+    )
+  }
 
   if (!stats) {
     return <div class="screen active stats-screen" />
@@ -109,93 +140,61 @@ export function StatsPage({ user, onBack }: StatsPageProps) {
 
   const hasData = stats.totalWins > 0 || stats.totalClears > 0 || stats.totalRetries > 0
 
-  const sortedCategories = [...ALL_CATEGORIES]
-    .map(cat => ({ ...cat, count: stats.tableCompletions[cat.id] ?? 0 }))
-    .sort((a, b) => b.count - a.count)
+  const sortedCategories = useMemo(() =>
+    [...ALL_CATEGORIES]
+      .map(cat => ({ ...cat, count: stats.tableCompletions[cat.id] ?? 0 }))
+      .sort((a, b) => b.count - a.count),
+    [stats.tableCompletions]
+  )
 
   return (
     <div class="screen active stats-screen">
-      <div class="stats-header flex flex-wrap gap-3 md:gap-4">
+      <div class="w-full max-w-[900px] flex items-center mb-4 flex-wrap gap-3 md:gap-4">
         <button type="button" class="back-chip" onClick={onBack} aria-label="Tillbaka">🔙</button>
-        <h1 class="stats-title">Statistik</h1>
+        <h1 class="font-[Fredoka_One] text-2xl text-[var(--text-secondary)] flex-1">Statistik</h1>
+        <ThemeToggle />
         <button type="button" class="back-chip" onClick={() => setShowHistory(true)}>
           📋 Historik
         </button>
       </div>
 
-      <div class="stats-content">
+      <div class="w-full max-w-[900px]">
         {!hasData ? (
-          <p class="stats-empty">Ingen data ännu! Spela lite först 🎮</p>
+          <p class="text-[var(--text-muted)]">Ingen data ännu! Spela lite först 🎮</p>
         ) : (
             <div class="stats-layout-experimental">
-              <div class="stats-sidebar">
+              <div class="stats-sidebar flex flex-col gap-3">
                 <h2 class="stats-section-label">Översikt</h2>
-                <div class="stats-sidebar-summary">
+                <div>
                   <div class="stats-highlights">
-                  <div class="highlight-row" style={`--tc:${COLORS[4]}`}>
-                    <span class="highlight-icon" style={`color:${COLORS[4]}`}>🏆</span>
-                    <div>
-                      <div class="highlight-title">Totala vinster</div>
-                      <div class="highlight-value">{stats.totalWins}</div>
-                    </div>
-                  </div>
+                  <HighlightRow icon="🏆" color={COLORS[4]} title="Totala vinster" value={stats.totalWins} />
                   {stats.mostPlayedTable !== null && (() => {
                     const cat = getCategoryDef(stats.mostPlayedTable)
                     const color = cat?.color ?? COLORS[(stats.mostPlayedTable - 1) % COLORS.length]
                     const emoji = cat?.emoji ?? EMOJIS[(stats.mostPlayedTable - 1) % EMOJIS.length]
                     const label = cat?.label ?? `${stats.mostPlayedTable}:ans tabell`
-                    return (
-                      <div class="highlight-row" style={`--tc:${color}`}>
-                        <span class="highlight-icon" style={`color:${color}`}>{emoji}</span>
-                        <div>
-                          <div class="highlight-title">Mest spelade kategori</div>
-                          <div class="highlight-value">{label}</div>
-                        </div>
-                      </div>
-                    )
+                    return <HighlightRow icon={emoji} color={color} title="Mest spelade kategori" value={label} />
                   })()}
-
                   {stats.hardestNumber !== null && (() => {
                     const cat = getCategoryDef(stats.hardestNumber.table)
                     const color = cat?.color ?? COLORS[(stats.hardestNumber.table - 1) % COLORS.length]
-                    return (
-                      <div class="highlight-row" style={`--tc:${color}`}>
-                        <span class="highlight-icon">🔥</span>
-                        <div>
-                          <div class="highlight-title">Svårast tal</div>
-                          <div class="highlight-value">
-                            {cat?.operation === 'multiply'
-                              ? `${stats.hardestNumber.table} × ${stats.hardestNumber.n} = ${stats.hardestNumber.table * stats.hardestNumber.n}`
-                              : `${cat?.label ?? `Kategori ${stats.hardestNumber.table}`} – kort ${stats.hardestNumber.n}`
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    )
+                    const value = cat?.operation === 'multiply'
+                      ? `${stats.hardestNumber.table} × ${stats.hardestNumber.n} = ${stats.hardestNumber.table * stats.hardestNumber.n}`
+                      : `${cat?.label ?? `Kategori ${stats.hardestNumber.table}`} – kort ${stats.hardestNumber.n}`
+                    return <HighlightRow icon="🔥" color={color} title="Svårast tal" value={value} />
                   })()}
-
                   {stats.easiestNumber !== null && (() => {
                     const cat = getCategoryDef(stats.easiestNumber.table)
                     const color = cat?.color ?? COLORS[(stats.easiestNumber.table - 1) % COLORS.length]
-                    return (
-                      <div class="highlight-row" style={`--tc:${color}`}>
-                        <span class="highlight-icon">⚡</span>
-                        <div>
-                          <div class="highlight-title">Lättaste tal</div>
-                          <div class="highlight-value">
-                            {cat?.operation === 'multiply'
-                              ? `${stats.easiestNumber.table} × ${stats.easiestNumber.n} = ${stats.easiestNumber.table * stats.easiestNumber.n}`
-                              : `${cat?.label ?? `Kategori ${stats.easiestNumber.table}`} – kort ${stats.easiestNumber.n}`
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    )
+                    const value = cat?.operation === 'multiply'
+                      ? `${stats.easiestNumber.table} × ${stats.easiestNumber.n} = ${stats.easiestNumber.table * stats.easiestNumber.n}`
+                      : `${cat?.label ?? `Kategori ${stats.easiestNumber.table}`} – kort ${stats.easiestNumber.n}`
+                    return <HighlightRow icon="⚡" color={color} title="Lättaste tal" value={value} />
                   })()}
                   </div>
                 </div>
               </div>
-              <div class="stats-completion-list-col">
+              <div class="flex flex-col gap-3">
                 <h2 class="stats-section-label">Klarade utmaningar</h2>
                 <ul class="stats-completion-list">
                   {sortedCategories.map(cat => (
@@ -221,3 +220,5 @@ export function StatsPage({ user, onBack }: StatsPageProps) {
     </div>
   )
 }
+
+export default StatsPage

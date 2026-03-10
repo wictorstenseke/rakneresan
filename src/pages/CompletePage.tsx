@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks'
 import type { RoundResult } from '../hooks/useGame'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { getCategoryDef } from '../lib/constants'
 import { buildEmbedUrl, pickRandomVideoId } from '../lib/youtube'
 
@@ -95,7 +96,7 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
   const { clearCount, retryCount, allClear, categoryId, wins } = result
   const categoryLabel = getCategoryDef(categoryId)?.label ?? `${categoryId}:ans tabell`
   const confettiRef = useRef<HTMLDivElement>(null)
-  const reaction = getReaction(allClear, clearCount, retryCount)
+  const [reaction] = useState(() => getReaction(allClear, clearCount, retryCount))
 
   const [showVideo, setShowVideo] = useState(false)
   const [videoId] = useState(() => pickRandomVideoId())
@@ -165,6 +166,9 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
 
   return (
     <div class="screen active complete-screen">
+      <div class="mb-3 flex justify-end w-full max-w-[420px]">
+        <ThemeToggle />
+      </div>
       <div class="confetti-container" ref={confettiRef} />
       <div class="complete-box">
         <span class="complete-emoji">{reaction.emoji}</span>
@@ -177,18 +181,18 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
           </div>
         )}
 
-        <div class="complete-stats">
-          <div class="cstat c">
+        <div class="flex justify-center gap-5 mb-8">
+          <div class="text-center text-[var(--success)]">
             <div class="cstat-num">{clearCount}</div>
             <div class="cstat-label">Klara</div>
           </div>
-          <div class="cstat r">
+          <div class="text-center text-[var(--warning)]">
             <div class="cstat-num">{retryCount}</div>
             <div class="cstat-label">Öva igen</div>
           </div>
         </div>
 
-        <div class="complete-btns">
+        <div class="flex flex-col gap-2.5">
           <button class="btn-primary" onClick={onContinue}>
             {allClear ? 'Spela igen! 🎮' : 'Fortsätt öva! 📚'}
           </button>
@@ -205,3 +209,5 @@ export function CompletePage({ result, onContinue, onBack }: CompletePageProps) 
     </div>
   )
 }
+
+export default CompletePage

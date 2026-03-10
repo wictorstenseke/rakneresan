@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'preact/hooks'
+import { useState, useCallback, useEffect, useRef } from 'preact/hooks'
 import { getPreference, setPreference } from '../lib/preferences'
 
 interface NumericKeypadProps {
@@ -22,7 +22,6 @@ const KEYS = [
 const HAND_PREF_KEY = 'handedness'
 
 export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPeek, onHint, flipped }: NumericKeypadProps) {
-  const [pressedKey, setPressedKey] = useState<string | null>(null)
   const [rightHanded, setRightHanded] = useState(true)
   const [isSwitching, setIsSwitching] = useState(false)
   const [peekConfirming, setPeekConfirming] = useState(false)
@@ -65,9 +64,6 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
   const handleKey = useCallback((key: string) => {
     if (disabled) return
 
-    setPressedKey(key)
-    setTimeout(() => setPressedKey(null), 150)
-
     if (key === '⌫') {
       onChange(value.slice(0, -1))
     } else if (key === '✓') {
@@ -79,9 +75,17 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
     }
   }, [value, onChange, onSubmit, disabled])
 
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  const handleGridClick = useCallback((e: MouseEvent) => {
+    const btn = (e.target as HTMLElement).closest('button[data-key]') as HTMLButtonElement | null
+    if (!btn || btn.disabled) return
+    handleKey(btn.dataset.key!)
+  }, [handleKey])
+
   return (
     <div class={`keypad-wrapper${rightHanded ? ' right-handed' : ' left-handed'}${isSwitching ? ' switching' : ''}`}>
-      <div class="keypad-grid">
+      <div class="keypad-grid" ref={gridRef} onClick={handleGridClick}>
         {KEYS.map((row, ri) =>
           row.map((key) => {
             const isAction = key === '⌫' || key === '✓'
@@ -89,8 +93,8 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
               <button
                 key={`${ri}-${key}`}
                 type="button"
-                class={`keypad-key${pressedKey === key ? ' pressed' : ''}${key === '✓' ? ' key-submit' : ''}${key === '⌫' ? ' key-delete' : ''}${isAction ? '' : ' key-digit'}`}
-                onClick={() => handleKey(key)}
+                data-key={key}
+                class={`keypad-key${key === '✓' ? ' key-submit' : ''}${key === '⌫' ? ' key-delete' : ''}${isAction ? '' : ' key-digit'}`}
                 disabled={disabled && key !== '⌫'}
               >
                 {key}
@@ -99,8 +103,8 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
           })
         )}
       </div>
-      <div class="keypad-toggle-separator" />
-      <div class="keypad-toggle-row">
+      <div class="h-px bg-black/[.08] my-3" />
+      <div class="flex flex-col gap-2 w-full">
         {onHint && (
           <button
             type="button"

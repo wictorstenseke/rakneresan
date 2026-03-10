@@ -3,9 +3,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const {
   mockCreateUser, mockSignIn,
   mockGetDoc, mockSetDoc, mockUpdateDoc, mockDoc, mockArrayUnion,
-  mockAuth,
+  mockAuth, mockDb,
 } = vi.hoisted(() => {
   const mockAuth: { currentUser: { uid: string } | null } = { currentUser: null }
+  const mockDb = {}
   return {
     mockCreateUser: vi.fn(),
     mockSignIn: vi.fn(),
@@ -15,6 +16,7 @@ const {
     mockDoc: vi.fn(),
     mockArrayUnion: vi.fn((...args: unknown[]) => ({ __arrayUnion: args })),
     mockAuth,
+    mockDb,
   }
 })
 
@@ -32,8 +34,8 @@ vi.mock('firebase/firestore', () => ({
 }))
 
 vi.mock('./firebase', () => ({
-  auth: mockAuth,
-  db: {},
+  getFirebaseAuth: () => Promise.resolve(mockAuth),
+  getFirebaseDb: () => Promise.resolve(mockDb),
 }))
 
 import { firebaseStorageAdapter } from './storage.firebase'
@@ -198,6 +200,20 @@ describe('storage.firebase', () => {
       const unionArg = mockArrayUnion.mock.calls[0][0] as { table: number; timestamp: number }
       expect(unionArg.table).toBe(3)
       expect(typeof unionArg.timestamp).toBe('number')
+    })
+  })
+
+  describe('saveCompletedRound', () => {
+    it('saves table data and logs completion in one write', async () => {
+      const data = { wins: 1, clear: [] as number[], retry: [] as number[] }
+
+      await firebaseStorageAdapter.saveCompletedRound('alice', 3, data)
+
+      expect(mockUpdateDoc).toHaveBeenCalledTimes(1)
+      expect(mockArrayUnion).toHaveBeenCalled()
+      const call = mockUpdateDoc.mock.calls[0][1] as Record<string, unknown>
+      expect(call['tables.3']).toEqual(data)
+      expect(call.completionLog).toBeDefined()
     })
   })
 })

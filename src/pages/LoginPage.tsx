@@ -1,5 +1,6 @@
 import { useState, useRef } from 'preact/hooks'
 import type { JSX } from 'preact'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { getSavedUsers, removeUser, getUserColor, getUserEmoji } from '../lib/savedUsers'
 
 interface LoginPageProps {
@@ -11,29 +12,34 @@ export function LoginPage({ onLogin, login }: LoginPageProps) {
   const [username, setUsername] = useState('')
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const [savedUsers, setSavedUsers] = useState(getSavedUsers)
   const [tab, setTab] = useState<'users' | 'form'>(savedUsers.length > 0 ? 'users' : 'form')
   const codeRef = useRef<HTMLInputElement>(null)
 
-  const handleSubmit = async (e: JSX.TargetedEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const result = await login(username, pin)
-    if (result.success) {
-      setError('')
-      onLogin()
-    } else {
-      setError(result.error ?? 'Okänt fel')
+  const doLogin = async (u: string, p: string) => {
+    if (isLoading) return
+    setIsLoading(true)
+    try {
+      const result = await login(u, p)
+      if (result.success) {
+        setError('')
+        onLogin()
+      } else {
+        setError(result.error ?? 'Okänt fel')
+      }
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const handleChipLogin = async (savedUsername: string, savedPin: string) => {
-    const result = await login(savedUsername, savedPin)
-    if (result.success) {
-      setError('')
-      onLogin()
-    } else {
-      setError(result.error ?? 'Okänt fel')
-    }
+  const handleSubmit = (e: JSX.TargetedEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    void doLogin(username, pin)
+  }
+
+  const handleChipLogin = (savedUsername: string, savedPin: string) => {
+    void doLogin(savedUsername, savedPin)
   }
 
   const handleRemove = (e: MouseEvent, savedUsername: string) => {
@@ -48,6 +54,9 @@ export function LoginPage({ onLogin, login }: LoginPageProps) {
 
   return (
     <div class="screen active login-screen">
+      <div class="mb-3 flex justify-end w-full max-w-[400px] px-2">
+        <ThemeToggle />
+      </div>
       <div class="login-box">
         <img src={`${import.meta.env.BASE_URL}rocket.svg`} alt="" class="login-emoji" width="80" height="80" />
         <h1>Räkneresan</h1>
@@ -83,8 +92,9 @@ export function LoginPage({ onLogin, login }: LoginPageProps) {
                   class="avatar-chip"
                   role="button"
                   tabIndex={0}
-                  onClick={() => void handleChipLogin(u.username, u.pin)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') void handleChipLogin(u.username, u.pin) }}
+                  onClick={() => handleChipLogin(u.username, u.pin)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleChipLogin(u.username, u.pin) }}
+                  aria-disabled={isLoading}
                 >
                   <div class="avatar-circle" style={{ backgroundColor: color }}>
                     {emoji}
@@ -135,7 +145,9 @@ export function LoginPage({ onLogin, login }: LoginPageProps) {
               />
             </div>
 
-            <button type="submit" class="btn-primary">Starta! 🚀</button>
+            <button type="submit" class="btn-primary" disabled={isLoading}>
+              {isLoading ? 'Laddar...' : 'Starta! 🚀'}
+            </button>
           </form>
         )}
 

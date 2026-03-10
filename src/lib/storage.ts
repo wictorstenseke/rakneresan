@@ -20,4 +20,6 @@ export interface StorageAdapter {
   createUser(username: string, pin: string): Promise<void>
   validatePin(username: string, pin: string): Promise<boolean>
   logCompletion(username: string, table: number): Promise<void>
+  /** Save table reset + log completion in a single write (used on allClear). */
+  saveCompletedRound(username: string, table: number, data: TableData): Promise<void>
 }

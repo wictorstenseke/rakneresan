@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'preact/hooks'
 import { TEN_FRIENDS_CATEGORY_ID } from '../lib/constants'
 import { getMultiplyHints, opSymbol } from '../lib/hint-utils'
+import { Modal } from './Modal'
 import type { Operation } from '../lib/constants'
 
 interface HintModalProps {
@@ -18,25 +18,6 @@ const TABLE_NAMES = [
 ]
 
 export function HintModal({ categoryId, operation, isOpen, onClose, tableColor, equations }: HintModalProps) {
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    if (isOpen) {
-      closeButtonRef.current?.focus()
-    }
-  }, [isOpen])
-
-  useEffect(() => {
-    if (!isOpen) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [isOpen, onClose])
-
-  if (!isOpen) return null
-
   const isMultiply = operation === 'multiply'
   const isTenFriends = categoryId === TEN_FRIENDS_CATEGORY_ID && operation === 'add'
   const title = isMultiply
@@ -44,43 +25,26 @@ export function HintModal({ categoryId, operation, isOpen, onClose, tableColor, 
     : operation === 'add' ? 'Plus-hjälp' : 'Minus-hjälp'
 
   return (
-    <div
-      class="hint-backdrop"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      onClick={onClose}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`💡 ${title}`}
+      ariaLabel={title}
+      closeAriaLabel="Stäng hjälp"
+      style={{ '--hint-tc': tableColor }}
     >
-      <div
-        class="hint-modal"
-        style={{ '--hint-tc': tableColor } as Record<string, string>}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div class="hint-modal-header">
-          <span class="hint-modal-title">💡 {title}</span>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            class="hint-close-btn"
-            onClick={onClose}
-            aria-label="Stäng hjälp"
-          >
-            ✕
-          </button>
-        </div>
-        <div class="hint-chips" aria-hidden="true">
-          {isMultiply
-            ? getMultiplyHints(categoryId).map((n) => (
-                <span key={n} class="hint-chip">{n}</span>
-              ))
-            : (equations ?? []).map((eq, i) => (
-                <span key={i} class="hint-chip hint-chip-eq">
-                  {isTenFriends ? `${eq.a} + ?` : `${eq.a} ${opSymbol(operation)} ${eq.b}`}
-                </span>
-              ))
-          }
-        </div>
+      <div class="hint-chips" aria-hidden="true">
+        {isMultiply
+          ? getMultiplyHints(categoryId).map((n) => (
+              <span key={n} class="hint-chip">{n}</span>
+            ))
+          : (equations ?? []).map((eq, i) => (
+              <span key={i} class="hint-chip hint-chip-eq">
+                {isTenFriends ? `${eq.a} + ?` : `${eq.a} ${opSymbol(operation)} ${eq.b}`}
+              </span>
+            ))
+        }
       </div>
-    </div>
+    </Modal>
   )
 }
