@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'preact/hooks'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { COLORS, EMOJIS, ALL_CATEGORIES, getCategoryDef } from '../lib/constants'
+import type { Operation } from '../lib/constants'
 import { storage } from '../lib/storageContext'
 import type { UserData, CompletionEntry } from '../lib/storage'
 import { HistoryModal } from '../components/HistoryModal'
@@ -12,12 +13,18 @@ interface StatsPageProps {
 
 interface Stats {
   mostPlayedTable: number | null
-  hardestNumber: { table: number; n: number } | null
-  easiestNumber: { table: number; n: number } | null
+  hardestNumber: { table: number; n: number; a?: number; b?: number } | null
+  easiestNumber: { table: number; n: number; a?: number; b?: number } | null
   totalWins: number
   totalClears: number
   totalRetries: number
   tableCompletions: Record<number, number> // table -> times completed
+}
+
+function buildEquationLabel(op: Operation, a: number, b: number): string {
+  const sym = op === 'subtract' ? '−' : '+'
+  const result = op === 'subtract' ? a - b : a + b
+  return `${a} ${sym} ${b} = ${result}`
 }
 
 function computeStats(userData: UserData): Stats {
@@ -56,7 +63,7 @@ function computeStats(userData: UserData): Stats {
   }
 
   // Hardest number = in retry pile most
-  let hardestNumber: { table: number; n: number } | null = null
+  let hardestNumber: { table: number; n: number; a?: number; b?: number } | null = null
   let maxRetries = 0
   for (const [key, count] of Object.entries(retryCountMap)) {
     if (count > maxRetries) {
@@ -65,9 +72,13 @@ function computeStats(userData: UserData): Stats {
       hardestNumber = { table: t, n }
     }
   }
+  if (hardestNumber) {
+    const eq = tables[hardestNumber.table]?.cardEquations?.[hardestNumber.n]
+    if (eq) hardestNumber = { ...hardestNumber, ...eq }
+  }
 
   // Easiest number = in clear pile most (across most tables)
-  let easiestNumber: { table: number; n: number } | null = null
+  let easiestNumber: { table: number; n: number; a?: number; b?: number } | null = null
   let maxClears = 0
   for (const [key, count] of Object.entries(clearCountMap)) {
     if (count > maxClears) {
@@ -75,6 +86,10 @@ function computeStats(userData: UserData): Stats {
       const [t, n] = key.split('-').map(Number)
       easiestNumber = { table: t, n }
     }
+  }
+  if (easiestNumber) {
+    const eq = tables[easiestNumber.table]?.cardEquations?.[easiestNumber.n]
+    if (eq) easiestNumber = { ...easiestNumber, ...eq }
   }
 
   const tableCompletions: Record<number, number> = {}
@@ -178,17 +193,23 @@ export function StatsPage({ user, onBack }: StatsPageProps) {
                   {stats.hardestNumber !== null && (() => {
                     const cat = getCategoryDef(stats.hardestNumber.table)
                     const color = cat?.color ?? COLORS[(stats.hardestNumber.table - 1) % COLORS.length]
+                    const { table, n, a, b } = stats.hardestNumber
                     const value = cat?.operation === 'multiply'
-                      ? `${stats.hardestNumber.table} × ${stats.hardestNumber.n} = ${stats.hardestNumber.table * stats.hardestNumber.n}`
-                      : `${cat?.label ?? `Kategori ${stats.hardestNumber.table}`} – kort ${stats.hardestNumber.n}`
+                      ? `${table} × ${n} = ${table * n}`
+                      : (a !== undefined && b !== undefined && cat?.operation)
+                        ? buildEquationLabel(cat.operation, a, b)
+                        : `${cat?.label ?? `Kategori ${table}`} – kort ${n}`
                     return <HighlightRow icon="🔥" color={color} title="Svårast tal" value={value} />
                   })()}
                   {stats.easiestNumber !== null && (() => {
                     const cat = getCategoryDef(stats.easiestNumber.table)
                     const color = cat?.color ?? COLORS[(stats.easiestNumber.table - 1) % COLORS.length]
+                    const { table, n, a, b } = stats.easiestNumber
                     const value = cat?.operation === 'multiply'
-                      ? `${stats.easiestNumber.table} × ${stats.easiestNumber.n} = ${stats.easiestNumber.table * stats.easiestNumber.n}`
-                      : `${cat?.label ?? `Kategori ${stats.easiestNumber.table}`} – kort ${stats.easiestNumber.n}`
+                      ? `${table} × ${n} = ${table * n}`
+                      : (a !== undefined && b !== undefined && cat?.operation)
+                        ? buildEquationLabel(cat.operation, a, b)
+                        : `${cat?.label ?? `Kategori ${table}`} – kort ${n}`
                     return <HighlightRow icon="⚡" color={color} title="Lättaste tal" value={value} />
                   })()}
                   </div>

@@ -2,6 +2,7 @@ export interface TableData {
   wins: number
   clear: number[]
   retry: number[]
+  cardEquations?: Record<number, { a: number; b: number }>
 }
 
 export interface CompletionEntry {

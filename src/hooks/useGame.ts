@@ -169,9 +169,10 @@ export function useGame(username: string) {
     })
 
     // Spara i bakgrunden – blockerar inte UI
+    const cardEquations = state.equations.size > 0 ? Object.fromEntries(state.equations) : undefined
     const savePromise = allClear
       ? storage.saveCompletedRound(username, table, { wins, clear: [], retry: [] })
-      : storage.saveTableData(username, table, { wins, clear: newClear, retry: newRetry })
+      : storage.saveTableData(username, table, { wins, clear: newClear, retry: newRetry, cardEquations })
     savePromise.catch(err => console.error('Failed to save round result:', err))
   }, [username])
 
@@ -180,7 +181,9 @@ export function useGame(username: string) {
     if (bgSaveTimerRef.current) clearTimeout(bgSaveTimerRef.current)
     bgSaveTimerRef.current = setTimeout(() => {
       const { newClear, newRetry, wins } = computeEndRound(savedTdRef.current, clearPile, retryPile)
-      storage.saveTableData(username, gsRef.current.table, { wins, clear: newClear, retry: newRetry })
+      const eqs = gsRef.current.equations
+      const cardEquations = eqs.size > 0 ? Object.fromEntries(eqs) : undefined
+      storage.saveTableData(username, gsRef.current.table, { wins, clear: newClear, retry: newRetry, cardEquations })
         .catch(err => console.error('Background save failed:', err))
     }, 2000)
   }, [username])
@@ -265,7 +268,8 @@ export function useGame(username: string) {
     if (gs.clearPile.length === 0 && gs.retryPile.length === 0) return
 
     const { newClear, newRetry, wins } = computeEndRound(savedTdRef.current, gs.clearPile, gs.retryPile)
-    await storage.saveTableData(username, gs.table, { wins, clear: newClear, retry: newRetry })
+    const cardEquations = gs.equations.size > 0 ? Object.fromEntries(gs.equations) : undefined
+    await storage.saveTableData(username, gs.table, { wins, clear: newClear, retry: newRetry, cardEquations })
   }, [username])
 
   return {
