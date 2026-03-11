@@ -74,7 +74,7 @@ export function HomePage({ user, onSelectTable, onLogout, onStats, onShop }: Hom
         <h1 class="text-center min-[570px]:text-left min-[570px]:order-1 mt-6 min-[570px]:mt-0">🎯 Räkneresan</h1>
       </div>
 
-      <div class="flex-1 flex flex-col justify-center w-full max-w-[900px] max-sm:portrait:justify-start gap-6">
+      <div class="flex-1 flex flex-col justify-center landscape:justify-start landscape:pt-[80px] w-full max-w-[900px] max-sm:portrait:justify-start gap-6">
         {/* Operation tabs */}
         <div class="flex flex-wrap gap-1.5">
           {TABS.map(tab => {
