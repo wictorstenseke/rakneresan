@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { storage } from '../lib/storageContext'
-import { REWARD_VIDEO_IDS, buildEmbedUrl } from '../lib/youtube'
+import { REWARD_VIDEO_IDS, buildEmbedUrl, fetchVideoTitle } from '../lib/youtube'
 
 interface ShopPageProps {
   user: string
@@ -87,6 +87,12 @@ export function ShopPage({ user, onBack }: ShopPageProps) {
   const [videoEnded, setVideoEnded] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
 
+  // Video titles fetched from YouTube oEmbed
+  const [videoTitles, setVideoTitles] = useState<Record<string, string>>({})
+
+  // Label shown in the confirmation modal (resolved at click time)
+  const [confirmLabel, setConfirmLabel] = useState<string>('')
+
   // Feedback
   const [feedback, setFeedback] = useState<{ text: string; good: boolean } | null>(null)
 
@@ -101,16 +107,29 @@ export function ShopPage({ user, onBack }: ShopPageProps) {
     }).catch(() => setLoading(false))
   }, [user])
 
+  useEffect(() => {
+    let cancelled = false
+    REWARD_VIDEO_IDS.forEach(id => {
+      fetchVideoTitle(id).then(title => {
+        if (!cancelled && title) {
+          setVideoTitles(prev => ({ ...prev, [id]: title }))
+        }
+      })
+    })
+    return () => { cancelled = true }
+  }, [])
+
   const showFeedback = useCallback((text: string, good: boolean) => {
     setFeedback({ text, good })
     setTimeout(() => setFeedback(null), 2500)
   }, [])
 
-  const handleBuyClick = useCallback((item: ShopItem) => {
+  const handleBuyClick = useCallback((item: ShopItem, label: string) => {
     if (credits < item.cost) {
       showFeedback('Inte nog med poäng!', false)
       return
     }
+    setConfirmLabel(label)
     setConfirmItem(item)
   }, [credits, showFeedback])
 
@@ -214,7 +233,7 @@ export function ShopPage({ user, onBack }: ShopPageProps) {
             </div>
             <div class="shop-confirm-body">
               <div class="shop-confirm-item-icon">{confirmItem.emoji}</div>
-              <p class="shop-confirm-item-name">{confirmItem.label}</p>
+              <p class="shop-confirm-item-name">{confirmLabel}</p>
               <p class="shop-confirm-cost">Kostar <strong>{confirmItem.cost} poäng</strong></p>
               {confirmItem.type === 'video' && (
                 <p class="shop-confirm-hint">Videon öppnas direkt efter köpet.</p>
@@ -254,11 +273,13 @@ export function ShopPage({ user, onBack }: ShopPageProps) {
             {ALL_ITEMS.map(item => {
               const count = purchaseCounts[item.id] ?? 0
               const canAfford = credits >= item.cost
+              const displayLabel =
+                item.type === 'video' ? (videoTitles[item.id] ?? item.label) : item.label
               return (
                 <div key={item.id} class={`shop-item${!canAfford ? ' shop-item-locked' : ''}`}>
                   <div class="shop-item-icon">{item.emoji}</div>
                   <div class="shop-item-info">
-                    <div class="shop-item-name">{item.label}</div>
+                    <div class="shop-item-name">{displayLabel}</div>
                     <div class="shop-item-desc">{item.description}</div>
                     {count > 0 && (
                       <div class="shop-item-count">Köpt {count}×</div>
@@ -266,9 +287,9 @@ export function ShopPage({ user, onBack }: ShopPageProps) {
                   </div>
                   <button
                     class={`shop-buy-btn${canAfford ? '' : ' shop-buy-btn-disabled'}`}
-                    onClick={() => handleBuyClick(item)}
+                    onClick={() => handleBuyClick(item, displayLabel)}
                     disabled={!canAfford}
-                    aria-label={`Köp ${item.label} för ${item.cost} poäng`}
+                    aria-label={`Köp ${displayLabel} för ${item.cost} poäng`}
                   >
                     <span class="shop-buy-cost">💰 {item.cost}</span>
                     <span class="shop-buy-label">Köp</span>

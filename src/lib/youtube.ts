@@ -52,3 +52,19 @@ export function buildEmbedUrl(videoId: string): string {
   })
   return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`
 }
+
+/**
+ * Fetches the title of a YouTube video via the public oEmbed API.
+ * No API key required. Returns null on any failure.
+ */
+export async function fetchVideoTitle(videoId: string): Promise<string | null> {
+  const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&format=json`
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return null
+    const data = await res.json() as { title?: string }
+    return data.title ?? null
+  } catch {
+    return null
+  }
+}
