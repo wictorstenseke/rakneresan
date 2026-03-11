@@ -42,9 +42,11 @@ export function removeUser(username: string): void {
 }
 
 export function getUserColor(username: string): string {
+  if (!username) return COLORS[0]
   return COLORS[djb2(username) % COLORS.length]
 }
 
 export function getUserEmoji(username: string): string {
+  if (!username) return EMOJIS[0]
   return EMOJIS[djb2(username) % EMOJIS.length]
 }
