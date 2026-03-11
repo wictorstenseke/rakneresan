@@ -60,7 +60,8 @@ npm run dev
 ```
 src/
   components/       NumericKeypad, HintModal, HistoryModal, Modal, ThemeToggle
-  pages/            LoginPage, HomePage, GamePage, CompletePage, StatsPage
+                    BalanceChip, TopHeader, UserMenuChip
+  pages/            LoginPage, HomePage, GamePage, CompletePage, StatsPage, ShopPage
   hooks/            useGame, useAuth, useTheme
   lib/
     firebase.ts         Firebase init
@@ -70,6 +71,7 @@ src/
     game-logic.ts       buildDeck, isCorrectAnswer, computeEndRound
     constants.ts        Shared constants, fakeEmail(), table definitions
     preferences.ts      Keypad hand preference (persisted)
+    youtube.ts          YouTube video title fetching utility
   app.tsx
   main.tsx
   index.css
@@ -86,7 +88,7 @@ Username + 4-digit PIN. Credentials are stored in Firebase Auth as `username@mat
 ### Screen Flow
 
 Login → Home → Game → Complete → (back to Home or replay)
-Home also provides access to Stats.
+Home also provides access to Stats and the Shop.
 
 ### Card Flip
 
@@ -95,6 +97,14 @@ Physical 3D flip animation via `@use-gesture/react`. Peeking at the answer immed
 ### Auto-Flip
 
 After 2 wrong answers on the same card, the card flips automatically and shows the answer for 12 seconds, then moves on.
+
+### Credits & Reward Shop
+
+Players earn credits (⭐) by completing rounds. Credits are displayed in the persistent `BalanceChip` in the top header on all pages. Credits can be spent in the **Shop** (`ShopPage`) to purchase **Peek Savers** — items that allow peeking at a card answer without sending it to the retry pile.
+
+### Peek Savers
+
+A peek saver is consumed automatically when a player peeks at a card. Without a peek saver, peeking still moves the card to the retry pile (core rule unchanged). Peek savers are purchased with credits in the Shop.
 
 ### Theming
 
