@@ -94,7 +94,7 @@ export function HomePage({ user, onSelectTable, onLogout, onStats, onShop }: Hom
           </div>
         </div>
         <h1 class="text-center min-[570px]:text-left min-[570px]:order-1 mt-6 min-[570px]:mt-0 flex items-center justify-center min-[570px]:justify-start gap-2">
-          <img src="/rocket.svg" alt="" class="w-8 h-8 shrink-0" aria-hidden />
+          <img src={`${import.meta.env.BASE_URL}rocket.svg`} alt="" class="w-8 h-8 shrink-0" aria-hidden />
           Räkneresan
         </h1>
       </div>

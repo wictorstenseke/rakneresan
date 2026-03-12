@@ -11,8 +11,11 @@ interface UserMenuChipProps {
   variant: 'home' | 'shop' | 'stats'
 }
 
+const ALIGN_LEFT_THRESHOLD = 200
+
 export function UserMenuChip({ user, onHome, onStats, onShop, onLogout, variant }: UserMenuChipProps) {
   const [open, setOpen] = useState(false)
+  const [alignLeft, setAlignLeft] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const { theme, toggleTheme } = useTheme()
 
@@ -27,6 +30,15 @@ export function UserMenuChip({ user, onHome, onStats, onShop, onLogout, variant 
     }
     document.addEventListener('click', handleClick)
     return () => document.removeEventListener('click', handleClick)
+  }, [open])
+
+  useEffect(() => {
+    if (!open || !containerRef.current) return
+    const raf = requestAnimationFrame(() => {
+      const rect = containerRef.current!.getBoundingClientRect()
+      setAlignLeft(rect.right < ALIGN_LEFT_THRESHOLD)
+    })
+    return () => cancelAnimationFrame(raf)
   }, [open])
 
   const closeAnd = (fn: () => void) => {
@@ -61,7 +73,10 @@ export function UserMenuChip({ user, onHome, onStats, onShop, onLogout, variant 
       </button>
 
       {open && (
-        <div class="user-menu-dropdown" role="menu">
+        <div
+          class={`user-menu-dropdown${alignLeft ? ' user-menu-dropdown--align-left' : ''}`}
+          role="menu"
+        >
           {menuItems.map((item) => (
             <button
               key={item.label}

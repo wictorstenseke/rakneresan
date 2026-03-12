@@ -12,8 +12,11 @@ const DESCRIPTIONS = {
   savers: { before: 'Titta på svaret utan att kort hamnar i Öva igen-pilen. Köp fler i ', link: 'butiken', after: '.' },
 } as const
 
+const ALIGN_LEFT_THRESHOLD = 250
+
 export function BalanceChip({ type, count, onShopClick, rewardBounceTrigger }: BalanceChipProps) {
   const [open, setOpen] = useState(false)
+  const [alignLeft, setAlignLeft] = useState(false)
   const [isBouncing, setIsBouncing] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const prevTriggerRef = useRef(rewardBounceTrigger ?? 0)
@@ -39,6 +42,15 @@ export function BalanceChip({ type, count, onShopClick, rewardBounceTrigger }: B
     return () => document.removeEventListener('click', handleClick)
   }, [open])
 
+  useEffect(() => {
+    if (!open || !containerRef.current) return
+    const raf = requestAnimationFrame(() => {
+      const rect = containerRef.current!.getBoundingClientRect()
+      setAlignLeft(rect.right < ALIGN_LEFT_THRESHOLD)
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [open])
+
   const isCredits = type === 'credits'
   const title = isCredits ? 'Dina poäng' : 'Dina Peek Savers'
   const label = isCredits ? '💰' : '👀'
@@ -57,7 +69,10 @@ export function BalanceChip({ type, count, onShopClick, rewardBounceTrigger }: B
         {isBouncing && <span class="balance-chip-plus-one">+1</span>}
       </button>
       {open && (
-        <div class="balance-chip-popover" role="tooltip">
+        <div
+          class={`balance-chip-popover${alignLeft ? ' balance-chip-popover--align-left' : ''}`}
+          role="tooltip"
+        >
           <p class="balance-chip-popover-text">
             {DESCRIPTIONS[type].before}
             {onShopClick ? (

@@ -173,6 +173,7 @@ img.login-emoji { width: 80px; height: 80px; margin-left: auto; margin-right: au
 .user-menu-chip-icon { font-size: 1rem; line-height: 1; flex-shrink: 0; background: none; }
 .user-menu-chip-name { font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 700; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: capitalize; }
 .user-menu-dropdown { position: absolute; top: calc(100% + 6px); right: 0; min-width: 180px; padding: 6px; border-radius: 12px; background: var(--surface); border: 2px solid var(--border); box-shadow: 0 8px 24px rgba(0, 0, 0, .12), 0 2px 8px rgba(0, 0, 0, .06); display: flex; flex-direction: column; gap: 4px; z-index: 100; animation: userMenuIn .2s ease; }
+.user-menu-dropdown--align-left { left: 0; right: auto; }
 @keyframes userMenuIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 .user-menu-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: none; border-radius: 8px; background: transparent; font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; width: 100%; transition: background .15s, transform .15s; touch-action: manipulation; }
 .user-menu-item:hover { background: var(--progress-bg); transform: scale(1.01); }
@@ -401,6 +402,7 @@ img.login-emoji { width: 80px; height: 80px; margin-left: auto; margin-right: au
 [data-theme="dark"] .balance-credits { background: #3d3520; color: #F5D55A; border-color: #6b5a20; }
 [data-theme="dark"] .balance-savers { background: #1e2a3d; color: #93C5FD; border-color: #2a3d5a; }
 .balance-chip-popover { position: absolute; top: calc(100% + 6px); right: 0; min-width: 220px; max-width: 280px; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 2px solid var(--border); box-shadow: 0 8px 24px rgba(0, 0, 0, .12); z-index: 100; animation: userMenuIn .2s ease; }
+.balance-chip-popover--align-left { left: 0; right: auto; }
 .balance-chip-popover-text { font-family: 'Nunito', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); line-height: 1.5; margin: 0; }
 .balance-chip-link { background: none; border: none; padding: 0; font: inherit; color: var(--tc); text-decoration: underline; cursor: pointer; font-weight: 700; }
 .balance-chip-link:hover { text-decoration: none; }
