@@ -231,7 +231,9 @@ img.login-emoji { width: 80px; height: 80px; margin-left: auto; margin-right: au
 .btn-peek .btn-icon, .hand-toggle .btn-icon, .btn-hint .btn-icon { font-size: 1.2rem; }
 .btn-peek:hover:not(:disabled), .hand-toggle:hover, .btn-hint:hover { transform: scale(1.02); }
 .btn-peek:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.btn-peek.btn-peek-confirming { border-color: var(--error); color: var(--error); background: var(--error-bg); }
+.btn-peek.btn-peek-confirming { border-color: #D97706 !important; color: #92400E !important; background: #FEF3C7 !important; }
+.dark .btn-peek.btn-peek-confirming { border-color: #FBBF24 !important; color: #FDE68A !important; background: rgba(251,191,36,0.15) !important; }
+.btn-peek.btn-peek-used { background: var(--surface) !important; border-color: var(--border) !important; color: var(--text-muted) !important; box-shadow: none !important; }
 
 /* HINT MODAL */
 .hint-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; animation: hint-backdrop-in .2s ease forwards; }

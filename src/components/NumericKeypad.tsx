@@ -26,6 +26,7 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
   const [rightHanded, setRightHanded] = useState(true)
   const [isSwitching, setIsSwitching] = useState(false)
   const [peekConfirming, setPeekConfirming] = useState(false)
+  const [peekUsed, setPeekUsed] = useState(false)
 
   // Load persisted handedness preference
   useEffect(() => {
@@ -52,11 +53,20 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
     return () => clearTimeout(t)
   }, [peekConfirming])
 
+  // Reset peek state when a new card arrives (value cleared by parent)
+  useEffect(() => {
+    if (value === '') {
+      setPeekUsed(false)
+      setPeekConfirming(false)
+    }
+  }, [value])
+
   const handlePeekClick = useCallback(() => {
     if (!onPeek) return
     if (peekConfirming) {
       onPeek()
       setPeekConfirming(false)
+      setPeekUsed(true)
     } else {
       setPeekConfirming(true)
     }
@@ -131,7 +141,7 @@ export function NumericKeypad({ value, onChange, onSubmit, disabled, user, onPee
         {onPeek && (
           <button
             type="button"
-            class={`btn-peek${peekConfirming ? ' btn-peek-confirming' : ''}${hasSavers ? ' btn-peek-has-saver' : ''}`}
+            class={`btn-peek${peekConfirming ? ' btn-peek-confirming' : ''}${hasSavers && !peekUsed && !peekConfirming ? ' btn-peek-has-saver' : ''}${peekUsed ? ' btn-peek-used' : ''}`}
             onClick={handlePeekClick}
             disabled={flipped}
             aria-label={peekConfirming ? 'Bekräfta titta på svaret' : 'Titta på svaret'}
