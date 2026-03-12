@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import type { RoundResult } from '../hooks/useGame'
-import { getCategoryDef } from '../lib/constants'
+import { getCategoryDef, EASY_CATEGORY_IDS } from '../lib/constants'
 import { storage } from '../lib/storageContext'
 
 interface CompletePageProps {
@@ -62,6 +62,7 @@ function getReaction(allClear: boolean, clearCount: number, retryCount: number):
 export function CompletePage({ result, user, onContinue, onBack }: CompletePageProps) {
   const { clearCount, retryCount, allClear, categoryId, wins } = result
   const categoryLabel = getCategoryDef(categoryId)?.label ?? `${categoryId}:ans tabell`
+  const creditReward = EASY_CATEGORY_IDS.has(categoryId) ? 1 : 4
   const confettiRef = useRef<HTMLDivElement>(null)
   const [reaction] = useState(() => getReaction(allClear, clearCount, retryCount))
 
@@ -78,10 +79,10 @@ export function CompletePage({ result, user, onContinue, onBack }: CompletePageP
   const handleChooseCredits = useCallback(() => {
     if (rewardChosen) return
     setRewardChosen(true)
-    storage.addCredits(user, 4)
-      .then(() => setRewardFeedback('💰 +4 poäng tillagda!'))
-      .catch(() => setRewardFeedback('💰 +4 poäng!'))
-  }, [rewardChosen, user])
+    storage.addCredits(user, creditReward)
+      .then(() => setRewardFeedback(`💰 +${creditReward} poäng tillagda!`))
+      .catch(() => setRewardFeedback(`💰 +${creditReward} poäng!`))
+  }, [rewardChosen, user, creditReward])
 
   const handleChoosePeekSaver = useCallback(() => {
     if (rewardChosen) return
@@ -92,14 +93,14 @@ export function CompletePage({ result, user, onContinue, onBack }: CompletePageP
   }, [rewardChosen, user])
 
   const handleContinue = useCallback(() => {
-    if (!rewardChosen) storage.addCredits(user, 4)
+    if (!rewardChosen) storage.addCredits(user, creditReward)
     onContinue()
-  }, [rewardChosen, user, onContinue])
+  }, [rewardChosen, user, creditReward, onContinue])
 
   const handleBack = useCallback(() => {
-    if (!rewardChosen) storage.addCredits(user, 4)
+    if (!rewardChosen) storage.addCredits(user, creditReward)
     onBack()
-  }, [rewardChosen, user, onBack])
+  }, [rewardChosen, user, creditReward, onBack])
 
   return (
     <div class="screen active complete-screen">
@@ -128,7 +129,7 @@ export function CompletePage({ result, user, onContinue, onBack }: CompletePageP
                   onClick={handleChooseCredits}
                 >
                   <span class="reward-choice-icon">💰</span>
-                  <span class="reward-choice-text">+4 Poäng</span>
+                  <span class="reward-choice-text">+{creditReward} Poäng</span>
                 </button>
                 <button
                   class="btn-reward-choice btn-reward-saver"

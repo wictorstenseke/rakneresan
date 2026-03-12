@@ -30,6 +30,9 @@ export interface CategoryDef {
 
 export const TEN_FRIENDS_CATEGORY_ID = 12
 
+/** Category IDs where only 1 credit / 1 Peek Saver is awarded (easy tables). */
+export const EASY_CATEGORY_IDS = new Set([1, 10, TEN_FRIENDS_CATEGORY_ID])
+
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
