@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'preact/hooks'
+import { useState, useEffect, useRef } from 'preact/hooks'
 import { BalanceChip } from '../components/BalanceChip'
 import { UserMenuChip } from '../components/UserMenuChip'
 import { MULTIPLY_CATEGORIES, PLUS_CATEGORIES, MINUS_CATEGORIES, DIVIDE_CATEGORIES } from '../lib/constants'
@@ -35,6 +35,9 @@ export function HomePage({ user, onSelectTable, onLogout, onStats, onShop }: Hom
   const [activeOp, setActiveOp] = useState<Operation>(() => getSavedHomeOperation(user))
   const [credits, setCredits] = useState(0)
   const [peekSavers, setPeekSavers] = useState(0)
+  const tabsScrollRef = useRef<HTMLDivElement>(null)
+  const [tabsAtStart, setTabsAtStart] = useState(true)
+  const [tabsAtEnd, setTabsAtEnd] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -51,6 +54,23 @@ export function HomePage({ user, onSelectTable, onLogout, onStats, onShop }: Hom
   useEffect(() => {
     setActiveOp(getSavedHomeOperation(user))
   }, [user])
+
+  useEffect(() => {
+    const el = tabsScrollRef.current
+    if (!el) return
+    const check = () => {
+      setTabsAtStart(el.scrollLeft <= 1)
+      setTabsAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1)
+    }
+    check()
+    el.addEventListener('scroll', check, { passive: true })
+    const ro = new ResizeObserver(check)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener('scroll', check)
+      ro.disconnect()
+    }
+  }, [])
 
   const handleTabChange = (op: Operation) => {
     setActiveOp(op)
@@ -73,26 +93,33 @@ export function HomePage({ user, onSelectTable, onLogout, onStats, onShop }: Hom
             <UserMenuChip user={user} onHome={() => {}} onStats={onStats} onShop={onShop} onLogout={onLogout} variant="home" />
           </div>
         </div>
-        <h1 class="text-center min-[570px]:text-left min-[570px]:order-1 mt-6 min-[570px]:mt-0">🎯 Räkneresan</h1>
+        <h1 class="text-center min-[570px]:text-left min-[570px]:order-1 mt-6 min-[570px]:mt-0 flex items-center justify-center min-[570px]:justify-start gap-2">
+          <img src="/rocket.svg" alt="" class="w-8 h-8 shrink-0" aria-hidden />
+          Räkneresan
+        </h1>
       </div>
 
       <div class="flex-1 flex flex-col justify-center landscape:justify-start landscape:pt-[80px] w-full max-w-[900px] max-sm:portrait:justify-start gap-6">
         {/* Operation tabs */}
-        <div class="flex flex-wrap gap-1.5">
-          {TABS.map(tab => {
-            const active = activeOp === tab.op
-            return (
-              <button
-                key={tab.op}
-                type="button"
-                class={`op-tab py-1.5 px-5 max-sm:portrait:px-3 min-h-9 rounded-xl font-[Nunito] text-[0.9rem] font-bold text-center cursor-pointer touch-manipulation outline-none ${active ? 'active text-white shadow-[0_3px_12px_rgba(0,0,0,.15)]' : 'border-2 border-(--border) bg-(--surface) text-(--text-secondary) shadow-[0_2px_8px_rgba(0,0,0,.08)]'}`}
-                style={active ? `background:${tab.gradient}` : ''}
-                onClick={() => handleTabChange(tab.op)}
-              >
-                {tab.label}
-              </button>
-            )
-          })}
+        <div class="relative max-sm:portrait:-mx-5">
+          <div class="hidden max-sm:portrait:block absolute left-0 top-0 bottom-0 w-10 bg-linear-to-r from-(--bg) to-transparent pointer-events-none z-10 transition-opacity duration-200" style={tabsAtStart ? 'opacity:0' : ''} />
+          <div ref={tabsScrollRef} class="flex flex-wrap gap-1.5 max-sm:portrait:flex-nowrap max-sm:portrait:overflow-x-auto max-sm:portrait:px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {TABS.map(tab => {
+              const active = activeOp === tab.op
+              return (
+                <button
+                  key={tab.op}
+                  type="button"
+                  class={`op-tab shrink-0 py-1.5 px-5 max-sm:portrait:px-3 min-h-9 rounded-xl font-[Nunito] text-[0.9rem] font-bold text-center cursor-pointer touch-manipulation outline-none ${active ? 'active text-white shadow-[0_3px_12px_rgba(0,0,0,.15)]' : 'border-2 border-(--border) bg-(--surface) text-(--text-secondary) shadow-[0_2px_8px_rgba(0,0,0,.08)]'}`}
+                  style={active ? `background:${tab.gradient}` : ''}
+                  onClick={() => handleTabChange(tab.op)}
+                >
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
+          <div class="hidden max-sm:portrait:block absolute right-0 top-0 bottom-0 w-10 bg-linear-to-l from-(--bg) to-transparent pointer-events-none z-10 transition-opacity duration-200" style={tabsAtEnd ? 'opacity:0' : ''} />
         </div>
 
         <div class={`grid gap-6 w-full max-w-[900px] op-content ${activeOp !== 'multiply' ? 'grid-cols-[repeat(auto-fill,minmax(200px,1fr))]' : 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))]'}`}>

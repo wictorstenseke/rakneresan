@@ -279,10 +279,6 @@ export function ShopPage({ user, onBack, onStats, onLogout }: ShopPageProps) {
       )}
 
       <TopHeader showBack onBack={onBack} maxWidth="900px">
-        <BalanceChip type="credits" count={credits} />
-        <div ref={saversChipRef}>
-          <BalanceChip type="savers" count={peekSavers} rewardBounceTrigger={peekSaverRewardKey} />
-        </div>
         <UserMenuChip user={user} onHome={onBack} onStats={onStats} onShop={onBack} onLogout={onLogout} variant="shop" />
       </TopHeader>
 
@@ -313,7 +309,17 @@ export function ShopPage({ user, onBack, onStats, onLogout }: ShopPageProps) {
         <div class="shop-loading">Laddar butiken...</div>
       ) : (
         <div class="shop-content">
-          <p class="shop-intro">Spendera dina poäng på roliga belöningar!</p>
+          <div class="flex flex-col sm:flex-row sm:items-stretch sm:justify-between gap-2 mb-5">
+            <div class="flex items-center min-h-9 justify-start">
+              <p class="shop-intro m-0 text-left">Spendera dina poäng på roliga belöningar!</p>
+            </div>
+            <div class="shop-balances flex flex-wrap items-center gap-2.5 sm:justify-end shrink-0">
+              <BalanceChip type="credits" count={credits} />
+              <div ref={saversChipRef}>
+                <BalanceChip type="savers" count={peekSavers} rewardBounceTrigger={peekSaverRewardKey} />
+              </div>
+            </div>
+          </div>
 
           <div class="shop-grid">
             {ALL_ITEMS.map(item => {
