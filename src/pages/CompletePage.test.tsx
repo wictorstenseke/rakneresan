@@ -67,7 +67,7 @@ describe('CompletePage', () => {
     expect(container.querySelector('.streak-badge')).toBeNull()
   })
 
-  it('shows "Spela igen!" continue button when allClear', () => {
+  it('shows "SPELA IGEN!" continue button when allClear', () => {
     render(
       <CompletePage
         result={makeResult({ allClear: true, wins: 1 })}
@@ -76,10 +76,10 @@ describe('CompletePage', () => {
         onBack={vi.fn()}
       />,
     )
-    expect(screen.getByText(/Spela igen/)).toBeTruthy()
+    expect(screen.getByText(/SPELA IGEN/)).toBeTruthy()
   })
 
-  it('shows "Fortsätt öva!" continue button when not allClear', () => {
+  it('shows "FORTSÄTT ÖVA!" continue button when not allClear', () => {
     render(
       <CompletePage
         result={makeResult({ allClear: false })}
@@ -88,7 +88,7 @@ describe('CompletePage', () => {
         onBack={vi.fn()}
       />,
     )
-    expect(screen.getByText(/Fortsätt öva/)).toBeTruthy()
+    expect(screen.getByText(/FORTSÄTT ÖVA/)).toBeTruthy()
   })
 
   it('continue button calls onContinue', async () => {
@@ -103,7 +103,7 @@ describe('CompletePage', () => {
     )
 
     await act(async () => {
-      fireEvent.click(screen.getByText(/Spela igen/))
+      fireEvent.click(screen.getByText(/SPELA IGEN/))
     })
 
     expect(onContinue).toHaveBeenCalled()
@@ -121,7 +121,7 @@ describe('CompletePage', () => {
     )
 
     await act(async () => {
-      fireEvent.click(screen.getByText(/🏠 Hem/))
+      fireEvent.click(screen.getByText(/JAG ÄR KLAR/))
     })
 
     expect(onBack).toHaveBeenCalled()
@@ -191,7 +191,7 @@ describe('CompletePage', () => {
     )
 
     await act(async () => {
-      fireEvent.click(screen.getByText(/🏠 Hem/))
+      fireEvent.click(screen.getByText(/JAG ÄR KLAR/))
     })
 
     // Credits are awarded automatically on leaving without choosing a reward
