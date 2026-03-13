@@ -33,25 +33,28 @@ export function GamePage({ categoryId, user, onBack, onComplete }: GamePageProps
 
   const catDef = getCategoryDef(categoryId)
 
-  // Start game on mount and load saver balance
-  useEffect(() => {
-    if (!startedRef.current) {
-      startedRef.current = true
-
-      const color = catDef?.color ?? '#4D96FF'
-      const color2 = catDef?.color2 ?? '#6BCB77'
-      document.documentElement.style.setProperty('--tc', color)
-      document.documentElement.style.setProperty('--tc2', color2)
-
-      void startGame(categoryId)
-    }
-  }, [categoryId, catDef, startGame])
-
+  // Validate category is active, redirect if hidden; also start game
   useEffect(() => {
     storage.getUser(user).then(userData => {
-      if (userData) setPeekSavers(userData.peekSavers ?? 0)
+      if (userData) {
+        setPeekSavers(userData.peekSavers ?? 0)
+        const activeCategories = userData.activeCategories
+        if (activeCategories !== null && !activeCategories.includes(categoryId)) {
+          onBack()
+          return
+        }
+      }
+      // Start game if category is valid
+      if (!startedRef.current) {
+        startedRef.current = true
+        const color = catDef?.color ?? '#4D96FF'
+        const color2 = catDef?.color2 ?? '#6BCB77'
+        document.documentElement.style.setProperty('--tc', color)
+        document.documentElement.style.setProperty('--tc2', color2)
+        void startGame(categoryId)
+      }
     }).catch(() => {})
-  }, [user])
+  }, [user, categoryId, onBack, catDef, startGame])
 
   // Handle round completion
   useEffect(() => {

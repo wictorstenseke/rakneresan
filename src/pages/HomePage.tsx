@@ -37,6 +37,8 @@ export function HomePage({ user, onSelectTable, onLogout, onStats, onShop, role,
   const [activeOp, setActiveOp] = useState<Operation>(() => getSavedHomeOperation(user))
   const [credits, setCredits] = useState(0)
   const [peekSavers, setPeekSavers] = useState(0)
+  const [creditsEnabled, setCreditsEnabled] = useState(true)
+  const [activeCategories, setActiveCategories] = useState<number[] | null>(null)
   const tabsScrollRef = useRef<HTMLDivElement>(null)
   const [tabsAtStart, setTabsAtStart] = useState(true)
   const [tabsAtEnd, setTabsAtEnd] = useState(false)
@@ -48,6 +50,8 @@ export function HomePage({ user, onSelectTable, onLogout, onStats, onShop, role,
         setTablesData(userData.tables)
         setCredits(userData.credits ?? 0)
         setPeekSavers(userData.peekSavers ?? 0)
+        setCreditsEnabled(userData.creditsEnabled ?? true)
+        setActiveCategories(userData.activeCategories ?? null)
       }
     }
     void load()
@@ -79,20 +83,29 @@ export function HomePage({ user, onSelectTable, onLogout, onStats, onShop, role,
     setPreference(user, 'home_active_op', op)
   }
 
-  const categories: CategoryDef[] =
-    activeOp === 'multiply' ? MULTIPLY_CATEGORIES
-    : activeOp === 'add'    ? PLUS_CATEGORIES
-    : activeOp === 'divide' ? DIVIDE_CATEGORIES
-    :                         MINUS_CATEGORIES
+  const categories: CategoryDef[] = (() => {
+    const allCategories =
+      activeOp === 'multiply' ? MULTIPLY_CATEGORIES
+      : activeOp === 'add'    ? PLUS_CATEGORIES
+      : activeOp === 'divide' ? DIVIDE_CATEGORIES
+      :                         MINUS_CATEGORIES
+    
+    if (activeCategories === null) {
+      return allCategories
+    }
+    
+    const activeCatSet = new Set(activeCategories)
+    return allCategories.filter(cat => activeCatSet.has(cat.id))
+  })()
 
   return (
     <div class="screen active home-screen">
       <div class="top-bar flex flex-col min-[570px]:flex-row min-[570px]:items-center min-[570px]:justify-between gap-1 min-[570px]:gap-3">
         <div class="flex justify-end min-[570px]:order-2">
           <div class="top-bar-actions flex items-center gap-2">
-            <BalanceChip type="credits" count={credits} onShopClick={onShop} />
-            <BalanceChip type="savers" count={peekSavers} onShopClick={onShop} />
-            <UserMenuChip user={user} onHome={() => {}} onStats={onStats} onShop={onShop} onLogout={onLogout} variant="home" onSuperuser={(role === 'superuser' || role === 'admin') ? onSuperuser : undefined} />
+            {creditsEnabled && <BalanceChip type="credits" count={credits} onShopClick={onShop} />}
+            {creditsEnabled && <BalanceChip type="savers" count={peekSavers} onShopClick={onShop} />}
+            <UserMenuChip user={user} onHome={() => {}} onStats={onStats} onShop={creditsEnabled ? onShop : undefined} onLogout={onLogout} variant="home" onSuperuser={(role === 'superuser' || role === 'admin') ? onSuperuser : undefined} />
           </div>
         </div>
         <h1 class="text-center min-[570px]:text-left min-[570px]:order-1 mt-6 min-[570px]:mt-0 flex items-center justify-center min-[570px]:justify-start gap-2">

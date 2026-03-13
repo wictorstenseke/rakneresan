@@ -28,22 +28,11 @@ interface ShopItem {
 const PEEK_SAVER_ITEM: ShopItem = {
   id: 'peekSaver',
   type: 'peekSaver',
-  label: 'Peek Saver',
+  label: 'Kika gratis',
   description: 'Titta på svaret utan att kort hamnar i Öva igen',
   emoji: '👀',
   cost: PEEK_SAVER_COST,
 }
-
-const VIDEO_ITEMS: ShopItem[] = REWARD_VIDEO_IDS.map((id, idx) => ({
-  id,
-  type: 'video',
-  label: `Belöningsvideo ${idx + 1}`,
-  description: 'Se en rolig YouTube-video som belöning!',
-  emoji: '🎬',
-  cost: VIDEO_COST,
-}))
-
-const ALL_ITEMS: ShopItem[] = [PEEK_SAVER_ITEM, ...VIDEO_ITEMS]
 
 declare global {
   interface Window {
@@ -83,6 +72,7 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
   const [peekSavers, setPeekSavers] = useState(0)
   const [purchaseCounts, setPurchaseCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
+  const [videoIds, setVideoIds] = useState<string[]>([])
 
   // Confirmation modal
   const [confirmItem, setConfirmItem] = useState<ShopItem | null>(null)
@@ -110,17 +100,26 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
   useEffect(() => {
     storage.getUser(user).then(userData => {
       if (userData) {
+        if (!(userData.creditsEnabled ?? true)) {
+          onBack()
+          return
+        }
         setCredits(userData.credits ?? 0)
         setPeekSavers(userData.peekSavers ?? 0)
         setPurchaseCounts(userData.purchaseCounts ?? {})
+        const spaceVideos = userData.spaceVideos ?? {}
+        const hidden = new Set(userData.hiddenVideos ?? [])
+        const configured = [...new Set(Object.values(spaceVideos).flat())]
+        const pool = configured.length > 0 ? configured : REWARD_VIDEO_IDS
+        setVideoIds(pool.filter(id => !hidden.has(id)))
       }
       setLoading(false)
     }).catch(() => setLoading(false))
-  }, [user])
+  }, [user, onBack])
 
   useEffect(() => {
     let cancelled = false
-    REWARD_VIDEO_IDS.forEach(id => {
+    videoIds.forEach(id => {
       fetchVideoTitle(id).then(title => {
         if (!cancelled && title) {
           setVideoTitles(prev => ({ ...prev, [id]: title }))
@@ -128,7 +127,7 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
       })
     })
     return () => { cancelled = true }
-  }, [])
+  }, [videoIds])
 
   const showFeedback = useCallback((text: string, good: boolean) => {
     setFeedback({ text, good })
@@ -246,7 +245,7 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
             {isExpanded ? '⊖ Zooma ut' : '⊕ Zooma in'}
           </button>
           <button class="video-back-btn-outline" onClick={() => setPlayingVideoId(null)}>
-            Tillbaka till butiken
+            Tillbaka till affären
           </button>
         </div>
       </div>
@@ -283,7 +282,7 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
         <UserMenuChip user={user} onHome={onBack} onStats={onStats} onShop={() => {}} onLogout={onLogout} variant="shop" onSuperuser={onSuperuser} />
       </TopHeader>
 
-      <h1 class="page-title w-full max-w-[900px] mx-auto">🛍️ Butiken</h1>
+      <h1 class="page-title w-full max-w-[900px] mx-auto">🛍️ Affär</h1>
 
       {feedback && (
         <div class={`shop-feedback${feedback.good ? ' shop-feedback-good' : ' shop-feedback-bad'}`}>
@@ -307,14 +306,14 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
       )}
 
       {loading ? (
-        <div class="shop-loading">Laddar butiken...</div>
+        <div class="shop-loading">Laddar affären...</div>
       ) : (
         <div class="shop-content">
           <div class="flex flex-col sm:flex-row sm:items-stretch sm:justify-between gap-2 mb-5">
             <div class="flex items-center min-h-9 justify-start">
               <p class="shop-intro m-0 text-left">Spendera dina poäng på roliga belöningar!</p>
             </div>
-            <div class="shop-balances flex flex-wrap items-center gap-2.5 sm:justify-end shrink-0">
+            <div class="shop-balances flex flex-wrap items-center justify-end gap-2.5 shrink-0">
               <BalanceChip type="credits" count={credits} />
               <div ref={saversChipRef}>
                 <BalanceChip type="savers" count={peekSavers} rewardBounceTrigger={peekSaverRewardKey} />
@@ -323,13 +322,28 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
           </div>
 
           <div class="shop-grid">
-            {ALL_ITEMS.map(item => {
+            {[PEEK_SAVER_ITEM, ...videoIds.map((id, idx): ShopItem => ({
+              id,
+              type: 'video',
+              label: `Belöningsvideo ${idx + 1}`,
+              description: 'Se en rolig YouTube-video som belöning!',
+              emoji: '🎬',
+              cost: VIDEO_COST,
+            }))].map(item => {
               const count = purchaseCounts[item.id] ?? 0
               const canAfford = credits >= item.cost
               const displayLabel =
                 item.type === 'video' ? (videoTitles[item.id] ?? item.label) : item.label
               return (
-                <div key={item.id} class={`shop-item${!canAfford ? ' shop-item-locked' : ''}`}>
+                <div
+                  key={item.id}
+                  class={`shop-item${!canAfford ? ' shop-item-locked' : ''}${canAfford ? ' shop-item-clickable' : ''}`}
+                  role={canAfford ? 'button' : undefined}
+                  tabIndex={canAfford ? 0 : undefined}
+                  aria-label={canAfford ? `Köp ${displayLabel} för ${item.cost} poäng` : undefined}
+                  onClick={canAfford ? (e) => handleBuyClick(item, displayLabel, e as unknown as MouseEvent) : undefined}
+                  onKeyDown={canAfford ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleBuyClick(item, displayLabel); } } : undefined}
+                >
                   <div class="shop-item-icon">{item.emoji}</div>
                   <div class="shop-item-info">
                     <div class="shop-item-name">{displayLabel}</div>
@@ -338,15 +352,10 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
                       <div class="shop-item-count">Köpt {count}×</div>
                     )}
                   </div>
-                  <button
-                    class={`shop-buy-btn${canAfford ? '' : ' shop-buy-btn-disabled'}`}
-                    onClick={(e) => handleBuyClick(item, displayLabel, e as unknown as MouseEvent)}
-                    disabled={!canAfford}
-                    aria-label={`Köp ${displayLabel} för ${item.cost} poäng`}
-                  >
+                  <div class={`shop-buy-btn${canAfford ? '' : ' shop-buy-btn-disabled'}`}>
                     <span class="shop-buy-cost">💰 {item.cost}</span>
                     <span class="shop-buy-label">Köp</span>
-                  </button>
+                  </div>
                 </div>
               )
             })}

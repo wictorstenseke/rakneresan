@@ -69,6 +69,13 @@ export function CompletePage({ result, user, onContinue, onBack }: CompletePageP
   // Reward choice state
   const [rewardChosen, setRewardChosen] = useState(false)
   const [rewardFeedback, setRewardFeedback] = useState<string | null>(null)
+  const [creditsEnabled, setCreditsEnabled] = useState(true)
+
+  useEffect(() => {
+    storage.getUser(user).then(userData => {
+      if (userData) setCreditsEnabled(userData.creditsEnabled ?? true)
+    })
+  }, [user])
 
   useEffect(() => {
     if (confettiRef.current && (allClear || retryCount === 0)) {
@@ -88,19 +95,19 @@ export function CompletePage({ result, user, onContinue, onBack }: CompletePageP
     if (rewardChosen) return
     setRewardChosen(true)
     storage.addPeekSavers(user, 1)
-      .then(() => setRewardFeedback('👀 +1 Peek Saver tillagd!'))
-      .catch(() => setRewardFeedback('👀 +1 Peek Saver!'))
+      .then(() => setRewardFeedback('👀 +1 Kika gratis tillagd!'))
+      .catch(() => setRewardFeedback('👀 +1 Kika gratis!'))
   }, [rewardChosen, user])
 
   const handleContinue = useCallback(() => {
-    if (!rewardChosen) storage.addCredits(user, creditReward)
+    if (creditsEnabled && !rewardChosen) storage.addCredits(user, creditReward)
     onContinue()
-  }, [rewardChosen, user, creditReward, onContinue])
+  }, [creditsEnabled, rewardChosen, user, creditReward, onContinue])
 
   const handleBack = useCallback(() => {
-    if (!rewardChosen) storage.addCredits(user, creditReward)
+    if (creditsEnabled && !rewardChosen) storage.addCredits(user, creditReward)
     onBack()
-  }, [rewardChosen, user, creditReward, onBack])
+  }, [creditsEnabled, rewardChosen, user, creditReward, onBack])
 
   return (
     <div class="screen active complete-screen">
@@ -117,31 +124,33 @@ export function CompletePage({ result, user, onContinue, onBack }: CompletePageP
         )}
 
         {/* Reward choice */}
-        <div class="reward-choice-section">
-          {rewardFeedback ? (
-            <div class="reward-feedback">{rewardFeedback}</div>
-          ) : (
-            <>
-              <p class="reward-choice-label">Välj din belöning:</p>
-              <div class="reward-choice-btns">
-                <button
-                  class="btn-reward-choice btn-reward-credits"
-                  onClick={handleChooseCredits}
-                >
-                  <span class="reward-choice-icon">💰</span>
-                  <span class="reward-choice-text">+{creditReward} Poäng</span>
-                </button>
-                <button
-                  class="btn-reward-choice btn-reward-saver"
-                  onClick={handleChoosePeekSaver}
-                >
-                  <span class="reward-choice-icon">👀</span>
-                  <span class="reward-choice-text">+1 Peek Saver</span>
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        {creditsEnabled && (
+          <div class="reward-choice-section">
+            {rewardFeedback ? (
+              <div class="reward-feedback">{rewardFeedback}</div>
+            ) : (
+              <>
+                <p class="reward-choice-label">Välj din belöning:</p>
+                <div class="reward-choice-btns">
+                  <button
+                    class="btn-reward-choice btn-reward-credits"
+                    onClick={handleChooseCredits}
+                  >
+                    <span class="reward-choice-icon">💰</span>
+                    <span class="reward-choice-text">+{creditReward} Poäng</span>
+                  </button>
+                  <button
+                    class="btn-reward-choice btn-reward-saver"
+                    onClick={handleChoosePeekSaver}
+                  >
+                    <span class="reward-choice-icon">👀</span>
+                    <span class="reward-choice-text">+1 Kika gratis</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         <div class="flex flex-col gap-2.5 mt-4">
           <button class="btn-primary" onClick={handleContinue}>
