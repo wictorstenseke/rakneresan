@@ -70,6 +70,14 @@ export function useAdmin() {
     setSpaceConfig(c => c ? { ...c, videos: updated } : c)
   }, [spaceConfig])
 
+  const toggleVideoHidden = useCallback(async (id: string) => {
+    const current = spaceConfig?.hiddenVideos ?? []
+    const updated = current.includes(id) ? current.filter(v => v !== id) : [...current, id]
+    setSpaceConfig(c => c ? { ...c, hiddenVideos: updated } : c)
+    await adminStorage.updateSpaceConfig({ hiddenVideos: updated })
+    await adminStorage.propagateSpaceConfig({ hiddenVideos: updated })
+  }, [spaceConfig])
+
   return {
     users,
     spaceConfig,
@@ -82,5 +90,6 @@ export function useAdmin() {
     toggleCredits,
     addVideo,
     removeVideo,
+    toggleVideoHidden,
   }
 }

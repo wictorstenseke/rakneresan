@@ -125,7 +125,7 @@ function UserTab({
                 </span>
               ) : (
                 <span class="text-xs text-(--text-muted) shrink-0">
-                  {new Date(u.profile.createdAt).toLocaleDateString('sv-SE')}
+                  Skapad {new Date(u.profile.createdAt).toLocaleDateString('sv-SE')}
                 </span>
               )}
             </div>
@@ -138,7 +138,7 @@ function UserTab({
 }
 
 export default function AdminPage({ role, user, onLogout, onBack, onStats, onShop }: AdminPageProps) {
-  const { users, spaceConfig, loading, error, addUser, addAdmin, updateActiveCategories, toggleCredits, addVideo, removeVideo } = useAdmin()
+  const { users, spaceConfig, loading, error, addUser, addAdmin, updateActiveCategories, toggleCredits, addVideo, removeVideo, toggleVideoHidden } = useAdmin()
   const [tab, setTab] = useState<Tab>('users')
 
   const tabs: { id: Tab; label: string }[] = [
@@ -151,13 +151,13 @@ export default function AdminPage({ role, user, onLogout, onBack, onStats, onSho
 
   return (
     <div
-      class="min-h-dvh bg-(--bg) flex flex-col"
+      class="min-h-dvh flex flex-col relative z-[1]"
       style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);"
     >
       {/* Header */}
       <div class="px-4 pt-4 pb-2">
         <div class="max-w-2xl mx-auto w-full">
-          <TopHeader showBack onBack={onBack} maxWidth="100%">
+          <TopHeader showBack onBack={onBack ?? (() => {})} maxWidth="100%">
             <UserMenuChip
               user={user}
               onHome={onBack}
@@ -179,6 +179,7 @@ export default function AdminPage({ role, user, onLogout, onBack, onStats, onSho
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
+              aria-current={tab === t.id ? 'page' : undefined}
               class={`op-tab shrink-0 py-1.5 px-5 min-h-9 rounded-xl font-[Nunito] text-[0.9rem] font-bold text-center cursor-pointer touch-manipulation outline-none ${tab === t.id ? 'active text-white' : 'bg-(--surface) text-(--text-secondary)'}`}
               style={tab === t.id ? 'background: linear-gradient(135deg, #FF6B6B, #FF9A3C); box-shadow: 0 3px 12px rgba(0,0,0,.15);' : 'box-shadow: 0 0 0 2px var(--border), 0 2px 8px rgba(0,0,0,.08);'}
             >
@@ -198,7 +199,7 @@ export default function AdminPage({ role, user, onLogout, onBack, onStats, onSho
           ) : (
             <>
               {tab === 'users' && role === 'superuser' && (
-                <div class="flex flex-col gap-6">
+                <div class="bg-(--surface) rounded-2xl border border-(--border) p-4 flex flex-col gap-6">
                   <UserTab
                     label="Admins"
                     addLabel="Lägg till admin"
@@ -206,6 +207,7 @@ export default function AdminPage({ role, user, onLogout, onBack, onStats, onSho
                     users={users.filter(u => u.profile.role === 'admin')}
                     onAdd={addAdmin}
                   />
+                  <hr class="border-(--border)" />
                   <UserTab
                     label="Användare"
                     addLabel="Lägg till användare"
@@ -216,13 +218,15 @@ export default function AdminPage({ role, user, onLogout, onBack, onStats, onSho
                 </div>
               )}
               {tab === 'users' && role === 'admin' && (
-                <UserTab
-                  label="Användare"
-                  addLabel="Lägg till användare"
-                  emptyLabel="Inga användare ännu"
-                  users={users}
-                  onAdd={addUser}
-                />
+                <div class="bg-(--surface) rounded-2xl border border-(--border) p-4">
+                  <UserTab
+                    label="Användare"
+                    addLabel="Lägg till användare"
+                    emptyLabel="Inga användare ännu"
+                    users={users}
+                    onAdd={addUser}
+                  />
+                </div>
               )}
               {tab === 'kategorier' && (
                 <KategoriTab
@@ -233,8 +237,10 @@ export default function AdminPage({ role, user, onLogout, onBack, onStats, onSho
               {tab === 'videos' && (
                 <VideoTab
                   videos={spaceConfig?.videos ?? {}}
+                  hiddenVideos={spaceConfig?.hiddenVideos ?? []}
                   onAdd={addVideo}
                   onRemove={removeVideo}
+                  onToggleHide={toggleVideoHidden}
                 />
               )}
               {tab === 'installningar' && (
