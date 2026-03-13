@@ -35,7 +35,7 @@ npm run test:watch # Watch mode for tests
 - **Auth**: Email/password with fake emails (`username@matte.kort`) via `fakeEmail()` in `constants.ts`
 - **PIN → password**: PINs are doubled internally (`pinToPassword`) to meet Firebase's 6-char minimum — never store or expose this mapping
 - **Firestore collections**:
-  - `users/{uid}` — game data (`tables` map, `completionLog`, `activeCategories`, `creditsEnabled`, `spaceVideos`, `purchaseCounts`)
+  - `users/{uid}` — game data (`tables` map, `completionLog`, `credits`, `peekSavers`, `purchaseCounts`, `activeCategories`, `creditsEnabled`, `spaceVideos`, `hiddenVideos`)
   - `profiles/{uid}` — `UserProfile` with role (`'superuser'|'admin'|'user'`), `spaceId`, pin, createdAt, createdBy
   - `spaceConfig/{spaceId}` — `SpaceConfig` with activeCategories, creditsEnabled, videos
 - **Config**: Read from `VITE_FIREBASE_*` env vars — stored in `.env.local` locally, GitHub Actions secrets for CI/deploy
@@ -53,9 +53,9 @@ npm run test:watch # Watch mode for tests
 
 ## Credits & Shop
 
-- Users earn credits by completing tables; spent in the **ShopPage** (`src/pages/ShopPage.tsx`)
-- **Peek Savers**: shop item that prevents a peeked card from going to the retry pile
-- Credits and purchases tracked in `UserData` (`creditsEnabled`, `purchaseCounts`)
+- Users earn credits by completing tables; spent in the **ShopPage** (`src/pages/ShopPage.tsx`) — UI heading: **Affär**
+- **Kika gratis** (code: `peekSavers`): shop item that prevents a peeked card from going to the retry pile
+- Credits and purchases tracked in `UserData` (`credits`, `peekSavers`, `purchaseCounts`)
 - Reward videos (YouTube) configured by admin per space — utilities in `src/lib/youtube.ts`
 
 ## File Conventions

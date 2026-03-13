@@ -170,6 +170,11 @@ img.login-emoji { width: 80px; height: 80px; margin-left: auto; margin-right: au
 .stats-chip, .user-chip, .back-chip { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 36px; padding: 6px 10px; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--text); cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, .08); transition: border-color .2s, transform .2s; touch-action: manipulation; }
 .stats-chip:hover, .user-chip:hover, .back-chip:hover { transform: scale(1.02); }
 
+/* PIN cell chip (admin PIN display with monkey emoji toggle) */
+.pin-chip { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px; min-width: 96px; padding: 6px 10px; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--text); cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, .08); transition: border-color .2s, transform .2s; touch-action: manipulation; }
+.pin-chip:hover { transform: scale(1.02); }
+.pin-chip-icon { font-size: 1.2rem; flex-shrink: 0; line-height: 1; }
+
 /* Top header (back left, badges+user right) */
 .top-header { width: 100%; margin-bottom: 16px; }
 .page-title { font-family: 'Fredoka One', cursive; font-size: 1.6rem; color: var(--text); margin: 0 0 20px; }
