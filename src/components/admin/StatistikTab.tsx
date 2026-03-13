@@ -16,20 +16,20 @@ export function StatistikTab({ users }: { users: SpaceUser[] }) {
         const completions = gameData?.completionLog ?? []
         const totalWins = Object.values(gameData?.tables ?? {}).reduce((s, t) => s + t.wins, 0)
         return (
-          <div key={u.uid} class="bg-(--surface) rounded-2xl border border-(--border) overflow-hidden">
+          <div key={u.uid} class="rounded-2xl border border-(--border) overflow-hidden" style="background-color: var(--surface)">
             <button
               type="button"
-              class="w-full flex items-center justify-between px-4 py-3 text-left"
+              class="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer transition-colors duration-200 hover:bg-(--border)"
               onClick={() => setExpanded(isOpen ? null : u.uid)}
             >
               <span class="font-semibold text-(--text)">{u.username}</span>
               <span class="flex items-center gap-2">
                 <span class="text-xs text-(--text-muted)">{totalWins} vinster</span>
-                <span class="text-(--text-muted)">{isOpen ? '▲' : '▼'}</span>
+                <span class="text-xs font-medium text-(--text-muted)">{isOpen ? 'DÖLJ' : 'VISA'}</span>
               </span>
             </button>
             {isOpen && (
-              <div class="px-4 pb-4 border-t border-(--border)">
+              <div class="px-4 pb-4 border-t border-(--border)" style="background-color: var(--surface)">
                 {gameData === null ? (
                   <p class="text-(--text-muted) text-sm pt-3">Ingen speldata ännu</p>
                 ) : (
@@ -49,7 +49,7 @@ export function StatistikTab({ users }: { users: SpaceUser[] }) {
                     </div>
                     {completions.length > 0 && (
                       <div class="mt-3">
-                        <p class="text-xs text-(--text-muted) mb-2">Senaste 5 avklarade</p>
+                        <p class="text-sm font-medium text-(--text-muted) mb-2">Senaste 5 avklarade</p>
                         <div class="flex flex-col gap-1">
                           {[...completions].reverse().slice(0, 5).map((entry, i) => {
                             const cat = ALL_CATEGORIES.find(c => c.id === entry.table)
