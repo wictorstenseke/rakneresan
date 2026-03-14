@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { BalanceChip } from '../components/BalanceChip'
+import { Modal } from '../components/Modal'
 import { TopHeader } from '../components/TopHeader'
 import { UserMenuChip } from '../components/UserMenuChip'
 import { storage } from '../lib/storageContext'
@@ -81,6 +82,7 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null)
   const [videoEnded, setVideoEnded] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
 
   // Video titles fetched from YouTube oEmbed
   const [videoTitles, setVideoTitles] = useState<Record<string, string>>({})
@@ -244,10 +246,26 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
           >
             {isExpanded ? '⊖ Zooma ut' : '⊕ Zooma in'}
           </button>
-          <button class="video-back-btn-outline" onClick={() => setPlayingVideoId(null)}>
+          <button class="video-back-btn-outline" onClick={() => setShowExitConfirm(true)}>
             Tillbaka till affären
           </button>
         </div>
+        <Modal
+          isOpen={showExitConfirm}
+          onClose={() => setShowExitConfirm(false)}
+          title="Lämna video?"
+          ariaLabel="Bekräfta att lämna video"
+          closeAriaLabel="Stäng"
+          className="shop-confirm-modal"
+        >
+          <div class="shop-confirm-body">
+            <p class="shop-confirm-item-name">Vill du lämna videon och gå tillbaka till affären?</p>
+            <div class="shop-confirm-actions">
+              <button class="btn-secondary" onClick={() => setShowExitConfirm(false)}>Stanna kvar</button>
+              <button class="btn-primary" onClick={() => { setPlayingVideoId(null); setShowExitConfirm(false); }}>Lämna video</button>
+            </div>
+          </div>
+        </Modal>
       </div>
     )
   }
