@@ -172,7 +172,7 @@ export default function AdminPage({ role, user, onLogout, onBack, onStats, onSho
       </div>
 
       {/* Tab bar */}
-      <div class="px-4 py-2 shrink-0 max-sm:portrait:-mx-4">
+      <div class="px-4 py-2 shrink-0 max-sm:portrait:px-0">
         <div class="max-w-2xl mx-auto w-full min-w-0 flex flex-wrap gap-1.5 max-sm:portrait:flex-nowrap max-sm:portrait:overflow-x-auto max-sm:portrait:px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map(t => (
             <button
