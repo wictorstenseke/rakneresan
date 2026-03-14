@@ -9,3 +9,7 @@ render(
   </ToastProvider>,
   document.getElementById('app')!
 )
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(reg => reg.update())
+}

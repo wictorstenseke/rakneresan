@@ -90,6 +90,9 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
   // Label shown in the confirmation modal (resolved at click time)
   const [confirmLabel, setConfirmLabel] = useState<string>('')
 
+  // Offline message modal
+  const [showOfflineModal, setShowOfflineModal] = useState(false)
+
   // Feedback
   const [feedback, setFeedback] = useState<{ text: string; good: boolean } | null>(null)
 
@@ -137,6 +140,10 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
   }, [])
 
   const handleBuyClick = useCallback((item: ShopItem, label: string, e?: MouseEvent) => {
+    if (item.type === 'video' && !navigator.onLine) {
+      setShowOfflineModal(true)
+      return
+    }
     if (credits < item.cost) {
       showFeedback('Inte nog med poäng!', false)
       return
@@ -272,6 +279,25 @@ export function ShopPage({ user, onBack, onStats, onLogout, onSuperuser }: ShopP
 
   return (
     <div class="screen active shop-screen">
+      {/* Offline modal */}
+      {showOfflineModal && (
+        <div class="hint-backdrop" role="dialog" aria-modal="true" aria-label="Offline" onClick={() => setShowOfflineModal(false)}>
+          <div class="hint-modal shop-confirm-modal" onClick={e => e.stopPropagation()}>
+            <div class="hint-modal-header">
+              <span class="hint-modal-title">Ingen internetanslutning</span>
+              <button type="button" class="hint-close-btn" onClick={() => setShowOfflineModal(false)} aria-label="Stäng">✕</button>
+            </div>
+            <div class="shop-confirm-body">
+              <div class="shop-confirm-item-icon">📶</div>
+              <p class="shop-confirm-item-name">Du är just nu offline. Anslut till internet för att köpa belöningsvideor.</p>
+              <div class="shop-confirm-actions">
+                <button class="btn-primary" onClick={() => setShowOfflineModal(false)}>OK</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Confirmation modal */}
       {confirmItem && (
         <div class="hint-backdrop" role="dialog" aria-modal="true" aria-label="Bekräfta köp" onClick={handleCancelConfirm}>
