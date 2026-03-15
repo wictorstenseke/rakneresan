@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'preact/hooks'
 
 const THRESHOLD = 80
+const SHOW_THRESHOLD = 40
 const REFRESH_DURATION = 1200
 
 type Phase = 'idle' | 'pulling' | 'refreshing'
@@ -65,5 +66,9 @@ export function usePullToRefresh() {
     }
   }, [])
 
-  return { phase, pullDistance }
+  const pullProgress = phase === 'pulling'
+    ? Math.min(1, Math.max(0, (pullDistance - SHOW_THRESHOLD) / (THRESHOLD - SHOW_THRESHOLD)))
+    : phase === 'refreshing' ? 1 : 0
+
+  return { phase, pullDistance, pullProgress, showThreshold: SHOW_THRESHOLD }
 }

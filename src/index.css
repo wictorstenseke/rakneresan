@@ -103,15 +103,12 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); height: 100%; o
   justify-content: center;
   padding: 8px;
 }
-.ptr-spinner {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 3px solid var(--surface);
-  border-top-color: var(--tc);
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+.ptr-arc {
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.2));
 }
-.ptr-spinner.spinning {
+.ptr-arc.spinning {
   animation: ptr-spin 0.7s linear infinite;
 }
 @keyframes ptr-spin {
