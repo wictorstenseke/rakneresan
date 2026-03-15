@@ -138,7 +138,7 @@ function UserTab({
 }
 
 export default function AdminPage({ role, user, onLogout, onBack, onStats, onShop }: AdminPageProps) {
-  const { users, spaceConfig, loading, error, addUser, addAdmin, updateActiveCategories, toggleCredits, addVideo, removeVideo, toggleVideoHidden } = useAdmin()
+  const { users, spaceConfig, loading, refreshing, error, addUser, addAdmin, updateActiveCategories, toggleCredits, addVideo, removeVideo, toggleVideoHidden } = useAdmin()
   const [tab, setTab] = useState<Tab>('users')
 
   const tabs: { id: Tab; label: string }[] = [
@@ -188,6 +188,10 @@ export default function AdminPage({ role, user, onLogout, onBack, onStats, onSho
           ))}
         </div>
       </div>
+
+      {refreshing && (
+        <div class="text-xs text-(--text-muted) text-center py-1">Uppdaterar...</div>
+      )}
 
       {/* Content */}
       <div class="flex-1 overflow-y-auto px-4 pb-8 pt-2">
