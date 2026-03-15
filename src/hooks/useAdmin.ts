@@ -2,35 +2,54 @@ import { useState, useEffect, useCallback } from 'preact/hooks'
 import { adminStorage, clearUserCache } from '../lib/storageContext'
 import type { SpaceUser, SpaceConfig } from '../lib/storage'
 
+interface AdminCache {
+  users: SpaceUser[]
+  spaceConfig: SpaceConfig | null
+}
+let _adminCache: AdminCache | null = null
+
 export function useAdmin() {
   const [users, setUsers] = useState<SpaceUser[]>([])
   const [spaceConfig, setSpaceConfig] = useState<SpaceConfig | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const refresh = useCallback(async () => {
-    setLoading(true)
+  const refresh = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true)
+    else setRefreshing(true)
     setError(null)
     try {
       const [fetchedUsers, fetchedConfig] = await Promise.all([
         adminStorage.listSpaceUsers(),
         adminStorage.getSpaceConfig(),
       ])
+      _adminCache = { users: fetchedUsers, spaceConfig: fetchedConfig }
       setUsers(fetchedUsers)
       setSpaceConfig(fetchedConfig)
       // Superuser's own users doc was synced in getSpaceConfig — clear
       // the storage cache so ShopPage reads fresh data on next visit
       clearUserCache()
     } catch (err) {
-      setError('Kunde inte ladda data. Försök igen.')
+      if (!silent) setError('Kunde inte ladda data. Försök igen.')
       console.error(err)
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
+      else setRefreshing(false)
     }
   }, [])
 
   useEffect(() => {
-    void refresh()
+    if (_adminCache) {
+      // Return visit — show cached data immediately, fetch latest in background
+      setUsers(_adminCache.users)
+      setSpaceConfig(_adminCache.spaceConfig)
+      setLoading(false)
+      void refresh(true)
+    } else {
+      // First visit — fetch with loading spinner
+      void refresh()
+    }
   }, [refresh])
 
   const addUser = useCallback(async (username: string, pin: string) => {
@@ -85,6 +104,7 @@ export function useAdmin() {
     users,
     spaceConfig,
     loading,
+    refreshing,
     error,
     refresh,
     addUser,
