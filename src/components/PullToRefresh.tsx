@@ -1,10 +1,15 @@
-import { usePullToRefresh } from '../hooks/usePullToRefresh'
+import type { Phase } from '../hooks/usePullToRefresh'
 
 const CIRCUMFERENCE = 2 * Math.PI * 14 // r=14 → ≈87.96
 
-export function PullToRefresh() {
-  const { phase, pullDistance, pullProgress, showThreshold } = usePullToRefresh()
+type Props = {
+  phase: Phase
+  pullDistance: number
+  pullProgress: number
+  showThreshold: number
+}
 
+export function PullToRefresh({ phase, pullDistance, pullProgress, showThreshold }: Props) {
   if (pullProgress <= 0 && phase !== 'refreshing') return null
 
   const translateY = phase === 'refreshing' ? 34 : Math.max(0, pullDistance - showThreshold - 10)
@@ -41,7 +46,7 @@ export function PullToRefresh() {
             strokeWidth="3"
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
-            strokeDashoffset={isSpinning ? 0 : dashOffset}
+            strokeDashoffset={isSpinning ? CIRCUMFERENCE * 0.25 : dashOffset}
           />
         </g>
       </svg>
