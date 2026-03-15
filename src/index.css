@@ -89,7 +89,34 @@
 }
 html { height: 100%; }
 body { font-family: 'Nunito', sans-serif; background: var(--bg); height: 100%; overflow: hidden; }
-#app { height: 100%; overflow-y: auto; }
+#app { height: 100%; overflow-y: auto; overscroll-behavior-y: contain; }
+
+.ptr-indicator {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-60px);
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+.ptr-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--surface);
+  border-top-color: var(--tc);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+.ptr-spinner.spinning {
+  animation: ptr-spin 0.7s linear infinite;
+}
+@keyframes ptr-spin {
+  to { transform: rotate(360deg); }
+}
 
 body::before {
   content: '';

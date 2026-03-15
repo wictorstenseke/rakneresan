@@ -2,10 +2,12 @@ import { render } from 'preact'
 import './index.css'
 import { App } from './app.tsx'
 import { ToastProvider } from './contexts/ToastContext'
+import { PullToRefresh } from './components/PullToRefresh'
 
 render(
   <ToastProvider>
     <App />
+    <PullToRefresh />
   </ToastProvider>,
   document.getElementById('app')!
 )
