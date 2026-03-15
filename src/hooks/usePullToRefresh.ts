@@ -4,7 +4,7 @@ const THRESHOLD = 80
 const SHOW_THRESHOLD = 40
 const REFRESH_DURATION = 1200
 
-type Phase = 'idle' | 'pulling' | 'refreshing'
+export type Phase = 'idle' | 'pulling' | 'refreshing'
 
 export function usePullToRefresh() {
   const [phase, setPhase] = useState<Phase>('idle')
