@@ -73,6 +73,7 @@ npm run test:watch # Watch mode for tests
 - Recently used credentials: `src/lib/savedUsers.ts` (max 6 username/pin pairs, djb2 hash for consistent color/emoji)
 - YouTube utilities: `src/lib/youtube.ts` (`REWARD_VIDEO_IDS`, `buildEmbedUrl`, `fetchVideoTitle`)
 - Hint helpers: `src/lib/hint-utils.ts` (`getMultiplyHints`, `opSymbol`)
+- Toast notifications: `src/contexts/ToastContext.tsx` — `ToastProvider` wraps the app; use `useToast()` hook to show messages (2500ms auto-dismiss)
 
 ## App Branding
 
@@ -84,3 +85,30 @@ npm run test:watch # Watch mode for tests
   - **divide**: Dela med 2, Dela med 3, Dela med 4, Dela med 5 (IDs 31–34)
 - Auth uses fake email domain: `username@matte.kort`
 - Screen flow: Login → Home → Game → Complete → (back to Home or replay); Home provides access to Stats and Shop; admins/superusers go to AdminPage
+
+## Learning
+
+Track two types of knowledge:
+- Domain: what things are (product context, user preferences, APIs, naming conventions, team decisions)
+- Procedural: how to do things (deploy steps, test commands, review flows)
+
+Organize knowledge as a hierarchy of .md files:
+- `knowledge/INDEX.md` routes to categories
+- Categories hold the details
+
+Progressive disclosure. Read top-down, only load what you need.
+
+Log errors to `knowledge/ERRORS.md`. Not every error is a mistake:
+- Deterministic errors (bad schema, wrong type, missing field) → conclude immediately
+- Infrastructure errors (timeout, rate limit, network) → log, no conclusion until pattern emerges
+- Conclusions graduate into the relevant domain or procedural file
+
+Actively manage the knowledge system. This is as important as the current task:
+- Review knowledge files at the start of each session
+- Merge overlapping categories
+- Split files that grow too long
+- Remove knowledge that's no longer accurate
+- Create new categories when patterns emerge
+- When you notice something that should be in CLAUDE.md but isn't — propose the edit. Don't wait to be asked.
+
+See `knowledge/INDEX.md` for the full knowledge hierarchy (deploy procedures, security decisions, testing philosophy, error log).
