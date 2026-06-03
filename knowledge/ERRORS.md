@@ -15,3 +15,9 @@ Log of encountered errors and conclusions.
 **Context**: Running security audit dependency advisory check.
 **Error**: `npm audit --json` failed inside sandbox with `getaddrinfo ENOTFOUND registry.npmjs.org`.
 **Conclusion**: Networked npm advisory checks require approved network access in this environment.
+
+## 2026-06-03: GitHub API sandbox network block
+**Type**: infrastructure
+**Context**: Inspecting GitHub Actions action metadata for Node 24 runtime warnings.
+**Error**: `gh api` failed inside sandbox with `error connecting to api.github.com`.
+**Conclusion**: Networked GitHub API inspection may require approved network access in this environment.
