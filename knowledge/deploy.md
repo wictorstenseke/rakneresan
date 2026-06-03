@@ -16,5 +16,5 @@
 
 ## Scripts
 
-- `scripts/seed-superuser.mjs` — one-off script used to set superuser role; likely no longer needed
+- `scripts/seed-superuser.mjs` — removed after credential exposure audit; do not recreate hardcoded superuser credentials
 - `scripts/generate-icons.mjs` — generates PWA icons from source
