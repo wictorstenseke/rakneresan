@@ -15,6 +15,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         cleanupOutdatedCaches: true,
+        // Precache fonts and images too, so the app renders fully offline
+        globPatterns: ['**/*.{js,css,html,png,svg,woff2,webmanifest}'],
         navigateFallback: 'index.html',
         runtimeCaching: [
           {

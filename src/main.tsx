@@ -4,6 +4,7 @@ import { App } from './app.tsx'
 import { ToastProvider } from './contexts/ToastContext'
 import { PullToRefresh } from './components/PullToRefresh'
 import { usePullToRefresh } from './hooks/usePullToRefresh'
+import { OfflineBadge } from './components/OfflineBadge'
 
 function Root() {
   const ptr = usePullToRefresh()
@@ -23,6 +24,7 @@ function Root() {
         <App />
       </div>
       <PullToRefresh {...ptr} />
+      <OfflineBadge />
     </ToastProvider>
   )
 }

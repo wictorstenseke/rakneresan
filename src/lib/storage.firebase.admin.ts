@@ -1,5 +1,6 @@
 import { getFirebaseAuth, getFirebaseDb } from './firebase'
 import { fakeEmail } from './constants'
+import { readDoc } from './firestoreOffline'
 import type { AdminStorageAdapter, UserProfile, SpaceConfig, SpaceUser, UserData } from './storage'
 
 function pinToPassword(pin: string): string {
@@ -17,8 +18,8 @@ export const firebaseAdminStorageAdapter: AdminStorageAdapter = {
   async getMyProfile(): Promise<UserProfile | null> {
     const uid = await requireUid()
     const db = await getFirebaseDb()
-    const { doc, getDoc } = await import('firebase/firestore')
-    const snap = await getDoc(doc(db, 'profiles', uid))
+    const { doc } = await import('firebase/firestore')
+    const snap = await readDoc(doc(db, 'profiles', uid))
     if (!snap.exists()) return null
     const d = snap.data()
     return {

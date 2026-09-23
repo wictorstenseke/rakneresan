@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {
   mockCreateUser, mockSignIn,
-  mockGetDoc, mockSetDoc, mockUpdateDoc, mockDoc, mockArrayUnion,
+  mockGetDoc, mockGetDocFromCache, mockSetDoc, mockUpdateDoc, mockDoc, mockArrayUnion,
   mockBatchSet, mockBatchCommit, mockWriteBatch,
   mockAuth, mockDb,
 } = vi.hoisted(() => {
@@ -15,6 +15,7 @@ const {
     mockCreateUser: vi.fn(),
     mockSignIn: vi.fn(),
     mockGetDoc: vi.fn(),
+    mockGetDocFromCache: vi.fn(),
     mockSetDoc: vi.fn(),
     mockUpdateDoc: vi.fn(),
     mockDoc: vi.fn(),
@@ -34,6 +35,8 @@ vi.mock('firebase/auth', () => ({
 
 vi.mock('firebase/firestore', () => ({
   getDoc: (...args: unknown[]) => mockGetDoc(...args),
+  getDocFromCache: (...args: unknown[]) => mockGetDocFromCache(...args),
+  increment: (n: number) => ({ __increment: n }),
   setDoc: (...args: unknown[]) => mockSetDoc(...args),
   updateDoc: (...args: unknown[]) => mockUpdateDoc(...args),
   doc: (...args: unknown[]) => mockDoc(...args),
@@ -232,6 +235,67 @@ describe('storage.firebase', () => {
       const call = mockUpdateDoc.mock.calls[0][1] as Record<string, unknown>
       expect(call['tables.3']).toEqual(data)
       expect(call.completionLog).toBeDefined()
+    })
+  })
+
+  describe('offline', () => {
+    const neverResolves = () => new Promise<never>(() => {})
+    const cachedSnap = {
+      exists: () => true,
+      data: () => ({ tables: {}, completionLog: [{ table: 1, timestamp: 1 }], credits: 5, peekSavers: 1 }),
+      ref: 'doc-ref',
+    }
+
+    it('writes return without waiting for server acknowledgement', async () => {
+      mockUpdateDoc.mockImplementation(neverResolves)
+
+      await firebaseStorageAdapter.saveTableData('alice', 5, { wins: 1, clear: [], retry: [] })
+      await firebaseStorageAdapter.saveCompletedRound('alice', 5, { wins: 1, clear: [], retry: [] })
+      await firebaseStorageAdapter.addCredits('alice', 3)
+
+      expect(mockUpdateDoc).toHaveBeenCalledTimes(3)
+    })
+
+    it('logs instead of throwing when a queued write fails', async () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      mockUpdateDoc.mockRejectedValue(new Error('permission-denied'))
+
+      await expect(firebaseStorageAdapter.addCredits('alice', 1)).resolves.toBeUndefined()
+      await new Promise(r => setTimeout(r, 0))
+
+      expect(spy).toHaveBeenCalled()
+      spy.mockRestore()
+    })
+
+    it('falls back to the local cache when the server read hangs', async () => {
+      vi.useFakeTimers()
+      mockGetDoc.mockImplementation(neverResolves)
+      mockGetDocFromCache.mockResolvedValue(cachedSnap)
+
+      const pending = firebaseStorageAdapter.getUser('alice')
+      await vi.advanceTimersByTimeAsync(3000)
+      const result = await pending
+
+      expect(result?.credits).toBe(5)
+      vi.useRealTimers()
+    })
+
+    it('falls back to the local cache when the server read fails', async () => {
+      mockGetDoc.mockRejectedValue(new Error('unavailable'))
+      mockGetDocFromCache.mockResolvedValue(cachedSnap)
+
+      const result = await firebaseStorageAdapter.getUser('alice')
+
+      expect(result?.credits).toBe(5)
+    })
+
+    it('spends credits against cached data while offline', async () => {
+      mockGetDoc.mockRejectedValue(new Error('unavailable'))
+      mockGetDocFromCache.mockResolvedValue(cachedSnap)
+      mockUpdateDoc.mockImplementation(neverResolves)
+
+      await expect(firebaseStorageAdapter.spendCreditsAndTrackPurchase('alice', 5, 'item')).resolves.toBe(true)
+      await expect(firebaseStorageAdapter.consumePeekSaver('alice')).resolves.toBe(true)
     })
   })
 })

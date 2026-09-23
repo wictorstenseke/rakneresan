@@ -1,5 +1,6 @@
 import { getFirebaseAuth, getFirebaseDb } from './firebase'
 import { fakeEmail } from './constants'
+import { readDoc, queueWrite } from './firestoreOffline'
 import type { StorageAdapter, UserData, TableData, CompletionEntry } from './storage'
 
 /** Firebase requires passwords >= 6 chars; PINs are 4 digits so we double them. */
@@ -18,8 +19,8 @@ export const firebaseStorageAdapter: StorageAdapter = {
   async getUser(_: string): Promise<UserData | null> {
     const uid = await requireUid()
     const db = await getFirebaseDb()
-    const { doc, getDoc, updateDoc } = await import('firebase/firestore')
-    const snap = await getDoc(doc(db, 'users', uid))
+    const { doc, updateDoc } = await import('firebase/firestore')
+    const snap = await readDoc(doc(db, 'users', uid))
     if (!snap.exists()) return null
     const data = snap.data()
     if (!data.backfillDone && (!data.completionLog || data.completionLog.length === 0)) {
@@ -32,10 +33,10 @@ export const firebaseStorageAdapter: StorageAdapter = {
         }
       }
       if (backfill.length > 0) {
-        await updateDoc(snap.ref, { completionLog: backfill, backfillDone: true })
+        queueWrite(updateDoc(snap.ref, { completionLog: backfill, backfillDone: true }), 'backfill')
         data.completionLog = backfill
       } else {
-        await updateDoc(snap.ref, { backfillDone: true })
+        queueWrite(updateDoc(snap.ref, { backfillDone: true }), 'backfill')
       }
     }
     return {
@@ -56,7 +57,7 @@ export const firebaseStorageAdapter: StorageAdapter = {
     const db = await getFirebaseDb()
     const { doc, updateDoc } = await import('firebase/firestore')
     const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined))
-    await updateDoc(doc(db, 'users', uid), { [`tables.${table}`]: clean })
+    queueWrite(updateDoc(doc(db, 'users', uid), { [`tables.${table}`]: clean }), 'saveTableData')
   },
 
   async createUser(username: string, pin: string): Promise<void> {
@@ -86,9 +87,9 @@ export const firebaseStorageAdapter: StorageAdapter = {
     const db = await getFirebaseDb()
     const { arrayUnion, doc, updateDoc } = await import('firebase/firestore')
     const entry: CompletionEntry = { table, timestamp: Date.now() }
-    await updateDoc(doc(db, 'users', uid), {
+    queueWrite(updateDoc(doc(db, 'users', uid), {
       completionLog: arrayUnion(entry),
-    })
+    }), 'logCompletion')
   },
 
   async saveCompletedRound(_: string, table: number, data: TableData): Promise<void> {
@@ -96,10 +97,10 @@ export const firebaseStorageAdapter: StorageAdapter = {
     const db = await getFirebaseDb()
     const { arrayUnion, doc, updateDoc } = await import('firebase/firestore')
     const entry: CompletionEntry = { table, timestamp: Date.now() }
-    await updateDoc(doc(db, 'users', uid), {
+    queueWrite(updateDoc(doc(db, 'users', uid), {
       [`tables.${table}`]: data,
       completionLog: arrayUnion(entry),
-    })
+    }), 'saveCompletedRound')
   },
 
   async validatePin(username: string, pin: string): Promise<boolean> {
@@ -121,42 +122,42 @@ export const firebaseStorageAdapter: StorageAdapter = {
     const uid = await requireUid()
     const db = await getFirebaseDb()
     const { doc, increment, updateDoc } = await import('firebase/firestore')
-    await updateDoc(doc(db, 'users', uid), { credits: increment(amount) })
+    queueWrite(updateDoc(doc(db, 'users', uid), { credits: increment(amount) }), 'addCredits')
   },
 
   async addPeekSavers(_: string, amount: number): Promise<void> {
     const uid = await requireUid()
     const db = await getFirebaseDb()
     const { doc, increment, updateDoc } = await import('firebase/firestore')
-    await updateDoc(doc(db, 'users', uid), { peekSavers: increment(amount) })
+    queueWrite(updateDoc(doc(db, 'users', uid), { peekSavers: increment(amount) }), 'addPeekSavers')
   },
 
   async consumePeekSaver(_: string): Promise<boolean> {
     const uid = await requireUid()
     const db = await getFirebaseDb()
-    const { doc, getDoc, increment, updateDoc } = await import('firebase/firestore')
+    const { doc, increment, updateDoc } = await import('firebase/firestore')
     const ref = doc(db, 'users', uid)
-    const snap = await getDoc(ref)
+    const snap = await readDoc(ref)
     if (!snap.exists()) return false
     const current = snap.data().peekSavers ?? 0
     if (current <= 0) return false
-    await updateDoc(ref, { peekSavers: increment(-1) })
+    queueWrite(updateDoc(ref, { peekSavers: increment(-1) }), 'consumePeekSaver')
     return true
   },
 
   async spendCreditsAndTrackPurchase(_: string, cost: number, itemId: string): Promise<boolean> {
     const uid = await requireUid()
     const db = await getFirebaseDb()
-    const { doc, getDoc, increment, updateDoc } = await import('firebase/firestore')
+    const { doc, increment, updateDoc } = await import('firebase/firestore')
     const ref = doc(db, 'users', uid)
-    const snap = await getDoc(ref)
+    const snap = await readDoc(ref)
     if (!snap.exists()) return false
     const current = snap.data().credits ?? 0
     if (current < cost) return false
-    await updateDoc(ref, {
+    queueWrite(updateDoc(ref, {
       credits: increment(-cost),
       [`purchaseCounts.${itemId}`]: increment(1),
-    })
+    }), 'spendCreditsAndTrackPurchase')
     return true
   },
 }
