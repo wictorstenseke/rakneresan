@@ -40,6 +40,9 @@ npm run test:watch # Watch mode for tests
   - `spaceConfig/{spaceId}` — `SpaceConfig` with activeCategories, creditsEnabled, videos
 - **Config**: Read from `VITE_FIREBASE_*` env vars — stored in `.env.local` locally, GitHub Actions secrets for CI/deploy
 - **Offline**: Firestore uses `persistentLocalCache` + `persistentMultipleTabManager` for PWA/offline support
+  - Never `await` a Firestore write in user flows — wrap it in `queueWrite()` (`src/lib/firestoreOffline.ts`); write promises only resolve on server ack, so they hang offline
+  - Read docs with `readDoc()` (server first, falls back to local cache after 2.5s or on error), not plain `getDoc`
+  - Service worker precaches `js/css/html/png/svg/woff2/webmanifest`; `OfflineBadge` shows when `navigator.onLine` is false
 
 ## User Roles & Admin
 
